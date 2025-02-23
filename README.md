@@ -31,7 +31,8 @@ You can also add this line to your `~/.bashrc` file for convenience.
         clang-tools \
         cmake \
         libgtest-dev \
-        ninja-build
+        ninja-build \
+        nlohmann-json3-dev\
 
 ## Build
 
