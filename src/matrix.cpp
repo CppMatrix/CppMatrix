@@ -7,6 +7,7 @@ module;
 
 export module cpp_matrix:matrix;
 import :cpu_matrix;
+import :cuda_matrix;
 import :webgpu_matrix;
 import :matrix_type;
 import :std_patch;
@@ -14,8 +15,10 @@ import :std_patch;
 namespace cpp_matrix {
 
 template <typename T>
-concept MatrixBackend = std::is_same_v<T, backend::CpuMatrix<std::float16_t>>
-    || std::is_same_v<T, backend::CpuMatrix<std::float32_t>> || std::is_same_v<T, backend::WebGpuMatrix<std::float16_t>>
+concept MatrixBackend
+    = std::is_same_v<T, backend::CpuMatrix<std::float16_t>> || std::is_same_v<T, backend::CpuMatrix<std::float32_t>>
+    || std::is_same_v<T, backend::CudaMatrix<std::float16_t>> || std::is_same_v<T, backend::CudaMatrix<std::float32_t>>
+    || std::is_same_v<T, backend::WebGpuMatrix<std::float16_t>>
     || std::is_same_v<T, backend::WebGpuMatrix<std::float32_t>>;
 
 template <MatrixBackend M>
@@ -162,44 +165,27 @@ using CpuMatrix = Matrix<backend::CpuMatrix<T>>;
 export template <MatrixElementType T>
 using WebGpuMatrix = Matrix<backend::WebGpuMatrix<T>>;
 
-CpuMatrix<std::float16_t> operator-(std::float16_t v, const CpuMatrix<std::float16_t>& m)
-{
-    return operator-(v, m.m_matrix);
-}
+export template <MatrixElementType T>
+using CudaMatrix = Matrix<backend::CudaMatrix<T>>;
 
-CpuMatrix<std::float32_t> operator-(std::float32_t v, const CpuMatrix<std::float32_t>& m)
-{
-    return operator-(v, m.m_matrix);
-}
+#define OpOperators(M, op)                                                                                             \
+    M operator op(typename M::ElementType v, const M& m)                                                               \
+    {                                                                                                                  \
+        return operator op(v, m.m_matrix);                                                                             \
+    }
 
-CpuMatrix<std::float16_t> operator*(std::float16_t v, const CpuMatrix<std::float16_t>& m)
-{
-    return operator*(v, m.m_matrix);
-}
+// clang-format off
+#define OperatorsElementType(M, T) \
+    OpOperators(M<T>, -) \
+    OpOperators(M<T>, *)
 
-CpuMatrix<std::float32_t> operator*(std::float32_t v, const CpuMatrix<std::float32_t>& m)
-{
-    return operator*(v, m.m_matrix);
-}
+#define Operators(M) \
+    OperatorsElementType(M, std::float16_t) \
+    OperatorsElementType(M, std::float32_t)
 
-WebGpuMatrix<std::float16_t> operator-(std::float16_t v, const WebGpuMatrix<std::float16_t>& m)
-{
-    return operator-(v, m.m_matrix);
-}
-
-WebGpuMatrix<std::float32_t> operator-(std::float32_t v, const WebGpuMatrix<std::float32_t>& m)
-{
-    return operator-(v, m.m_matrix);
-}
-
-WebGpuMatrix<std::float16_t> operator*(std::float16_t v, const WebGpuMatrix<std::float16_t>& m)
-{
-    return operator*(v, m.m_matrix);
-}
-
-WebGpuMatrix<std::float32_t> operator*(std::float32_t v, const WebGpuMatrix<std::float32_t>& m)
-{
-    return operator*(v, m.m_matrix);
-}
+Operators(CpuMatrix)
+Operators(CudaMatrix)
+Operators(WebGpuMatrix)
+// clang-format on
 
 }
