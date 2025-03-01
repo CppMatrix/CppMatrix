@@ -41,6 +41,11 @@ public:
         return matrix;
     }
 
+    static bool IsAvaliable()
+    {
+        return M::IsAvaliable();
+    }
+
     Matrix()
         : Matrix { 0, 0 }
     {

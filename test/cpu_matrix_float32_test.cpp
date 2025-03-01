@@ -2,8 +2,8 @@
 
 import cpp_matrix;
 
-#define MATRIX_TEST(X) TEST(CpuMatrixFloat32Test, X)
-
 using Matrix = cpp_matrix::CpuMatrix<std::float32_t>;
+
+#define MATRIX_TEST_NAME CpuMatrixFloat32Test
 
 #include "matrix_test.cpp"

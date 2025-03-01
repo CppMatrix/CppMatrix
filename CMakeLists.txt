@@ -26,13 +26,16 @@ if ((NOT EXISTS ${WEBGPU_PATH}/libwebgpu_dawn.so) OR (NOT EXISTS ${WEBGPU_PATH}/
         SHOW_PROGRESS)
 endif()
 
-add_compile_options(-g)
-
 include_directories(
     ${WEBGPU_PATH}/..
 )
 
+find_package(CUDAToolkit REQUIRED)
+include_directories(${CUDAToolkit_INCLUDE_DIRS})
+
 find_package(GTest REQUIRED)
+
+add_compile_options(-g)
 
 enable_testing()
 

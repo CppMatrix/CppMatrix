@@ -12,4 +12,5 @@ target_sources(cpp_matrix PUBLIC FILE_SET CXX_MODULES FILES
 )
 target_link_libraries(cpp_matrix PUBLIC
     webgpu
+    CUDA::cudart_static
 )

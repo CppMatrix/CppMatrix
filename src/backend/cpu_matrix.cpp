@@ -21,6 +21,11 @@ class CpuMatrix {
 public:
     using ElementType = T;
 
+    static bool IsAvaliable()
+    {
+        return true;
+    }
+
     CpuMatrix() = default;
 
     CpuMatrix(size_t row, size_t column)

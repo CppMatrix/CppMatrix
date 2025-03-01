@@ -1,10 +1,32 @@
+#ifndef MATRIX_TEST_NAME
+#error MATRIX_TEST_NAME must be defined.
+#endif
+
 #include <format>
+#include <gtest/gtest.h>
 #include <span>
 
 static constexpr Matrix::ElementType operator""_mf(long double v)
 {
     return v;
 }
+
+#define XSTR(x) STR(x)
+#define STR(x) #x
+
+#define TESTCLASSNAME(x) TESTCLASSNAME(x)
+
+class MATRIX_TEST_NAME : public testing::Test {
+public:
+    void SetUp() override
+    {
+        if (!Matrix::IsAvaliable()) {
+            GTEST_SKIP() << XSTR(MATRIX_TEST_NAME) << " is not avaliable, skip.";
+        }
+    }
+};
+
+#define MATRIX_TEST(X) TEST_F(MATRIX_TEST_NAME, X)
 
 MATRIX_TEST(DefaultConstructor)
 {
