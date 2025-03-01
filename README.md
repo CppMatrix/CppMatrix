@@ -1,8 +1,21 @@
 CppMatrix (experiment)
 ==
 
-## Install Dependencies:
+## Install Dependencies
+### Install Cuda-Toolkit 12.8
 
+    wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-keyring_1.1-1_all.deb
+
+The above instructions will install cuda-toolkit for WSL Ubuntu. If you need install for other linux distributions,
+you can follow the instruction on https://developer.nvidia.com/cuda-downloads
+
+After install, add the path to PATH environment variable:
+
+    export PATH=/usr/local/cuda-12.8/bin:$PATH
+
+You can also add this line to your `~/.bashrc` file for convenience.  
+
+### Install other dependencies
     sudo apt install \
         clang \
         clang-tools \
@@ -10,7 +23,7 @@ CppMatrix (experiment)
         libgtest-dev \
         ninja-build
 
-## Build:
+## Build
 
     mkdir build
     cd build

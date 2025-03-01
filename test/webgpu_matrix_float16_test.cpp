@@ -2,8 +2,8 @@
 
 import cpp_matrix;
 
-#define MATRIX_TEST(X) TEST(WebGpuMatrixFloat16Test, X)
-
 using Matrix = cpp_matrix::WebGpuMatrix<std::float16_t>;
+
+#define MATRIX_TEST_NAME WebGpuMatrixFloat16Test
 
 #include "matrix_test.cpp"

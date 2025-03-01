@@ -28,6 +28,11 @@ class WebGpuMatrix {
 public:
     using ElementType = T;
 
+    static bool IsAvaliable()
+    {
+        return !!GpuInstance::GetInstance().GetAdapter();
+    }
+
     WebGpuMatrix() = default;
 
     WebGpuMatrix(size_t row, size_t column)

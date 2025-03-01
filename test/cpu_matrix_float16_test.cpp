@@ -2,8 +2,8 @@
 
 import cpp_matrix;
 
-#define MATRIX_TEST(X) TEST(CpuMatrixFloat16Test, X)
-
 using Matrix = cpp_matrix::CpuMatrix<std::float16_t>;
+
+#define MATRIX_TEST_NAME CpuMatrixFloat16Test
 
 #include "matrix_test.cpp"

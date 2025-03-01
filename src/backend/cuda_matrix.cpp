@@ -1,6 +1,7 @@
 module;
 
 #include <cstddef>
+#include <cuda_runtime.h>
 #include <span>
 #include <vector>
 
@@ -17,6 +18,13 @@ public:
     CudaMatrix() = default;
 
     CudaMatrix(size_t row, size_t column) { }
+
+    static bool IsAvaliable()
+    {
+        auto deviceCount = int {};
+        auto err = cudaGetDeviceCount(&deviceCount);
+        return err == cudaSuccess && deviceCount > 0;
+    }
 
     size_t Row() const
     {
