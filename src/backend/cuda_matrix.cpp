@@ -6,7 +6,17 @@ module;
 #include <format>
 #include <memory>
 #include <span>
+#include <stdfloat>
 #include <vector>
+
+namespace cpp_matrix::backend {
+
+cudaError_t CudaAdd(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB, std::float16_t* cudaBufferOut,
+    size_t numElements);
+cudaError_t CudaAdd(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut,
+    size_t numElements);
+
+}
 
 export module cpp_matrix:cuda_matrix;
 import :matrix_type;
@@ -134,7 +144,10 @@ public:
 
     CudaMatrix operator+(const CudaMatrix& other) const
     {
-        return {};
+        MakeSureShapeIsSame(other);
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaAdd, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
     }
 
     CudaMatrix& operator+=(const CudaMatrix& other)
@@ -185,6 +198,14 @@ public:
     }
 
 private:
+    void MakeSureShapeIsSame(const CudaMatrix& m) const
+    {
+        if (m_row != m.m_row || m_column != m.m_column) {
+            throw std::runtime_error { std::format(
+                "Shape of matrix is not the same: ({}x{} vs {}x{})", m_row, m_column, m.m_row, m.m_column) };
+        }
+    }
+
     size_t BufferSize() const
     {
         return sizeof(T) * m_row * m_column;

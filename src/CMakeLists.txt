@@ -1,6 +1,8 @@
 add_subdirectory(webgpu)
 
-add_library(cpp_matrix)
+add_library(cpp_matrix
+    backend/cuda_matrix.cu
+)
 target_sources(cpp_matrix PUBLIC FILE_SET CXX_MODULES FILES
     backend/cpu_matrix.cpp
     backend/cuda_matrix.cpp
@@ -8,9 +10,7 @@ target_sources(cpp_matrix PUBLIC FILE_SET CXX_MODULES FILES
     matrix_type.cpp
     matrix.cpp
     module.cpp
-    std_patch.cpp
 )
 target_link_libraries(cpp_matrix PUBLIC
     webgpu
-    CUDA::cudart_static
 )

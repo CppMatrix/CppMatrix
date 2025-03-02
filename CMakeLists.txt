@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(cpp_matrix CXX)
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES "native")
+endif()
+
+project(cpp_matrix CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -38,6 +42,10 @@ find_package(GTest REQUIRED)
 add_compile_options(-g)
 
 enable_testing()
+
+include_directories(
+    std_patch
+)
 
 add_subdirectory(example)
 add_subdirectory(src)

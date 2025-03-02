@@ -2,6 +2,7 @@ module;
 
 #include <span>
 #include <stdexcept>
+#include <stdfloat>
 #include <variant>
 #include <vector>
 
@@ -10,7 +11,6 @@ import :cpu_matrix;
 import :cuda_matrix;
 import :webgpu_matrix;
 import :matrix_type;
-import :std_patch;
 
 namespace cpp_matrix {
 

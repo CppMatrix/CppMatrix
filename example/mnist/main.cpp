@@ -4,6 +4,7 @@
 #include <fstream>
 #include <span>
 #include <sstream>
+#include <stdfloat>
 #include <vector>
 
 import neural_network;
