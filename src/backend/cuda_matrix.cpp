@@ -20,6 +20,11 @@ cudaError_t CudaAdd(
 cudaError_t CudaAdd(
     const std::float32_t* cudaBufferA, std::float32_t cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements);
 
+cudaError_t CudaSub(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB, std::float16_t* cudaBufferOut,
+    size_t numElements);
+cudaError_t CudaSub(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut,
+    size_t numElements);
+
 }
 
 export module cpp_matrix:cuda_matrix;
@@ -149,6 +154,7 @@ public:
     CudaMatrix operator+(const CudaMatrix& other) const
     {
         MakeSureShapeIsSame(other);
+
         CudaMatrix res { m_row, m_column };
         Cuda(CudaAdd, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
         return res;
@@ -157,6 +163,7 @@ public:
     CudaMatrix& operator+=(const CudaMatrix& other)
     {
         MakeSureShapeIsSame(other);
+
         return *this = *this + other;
     }
 
@@ -169,7 +176,11 @@ public:
 
     CudaMatrix operator-(const CudaMatrix& other) const
     {
-        return {};
+        MakeSureShapeIsSame(other);
+
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaSub, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
     }
 
     CudaMatrix operator*(const CudaMatrix& other) const
