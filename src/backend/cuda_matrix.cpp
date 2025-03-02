@@ -25,6 +25,10 @@ cudaError_t CudaSub(const std::float16_t* cudaBufferA, const std::float16_t* cud
 cudaError_t CudaSub(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut,
     size_t numElements);
 
+cudaError_t CudaDotMul(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB,
+    std::float16_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
+cudaError_t CudaDotMul(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB,
+    std::float32_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
 }
 
 export module cpp_matrix:cuda_matrix;
@@ -185,7 +189,14 @@ public:
 
     CudaMatrix operator*(const CudaMatrix& other) const
     {
-        return {};
+        if (m_column != other.m_row) {
+            throw std::runtime_error { "Can't dot two matrixs" };
+        }
+
+        CudaMatrix res { m_row, other.m_column };
+        Cuda(CudaDotMul, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row, m_column,
+            other.m_column);
+        return res;
     }
 
     CudaMatrix Sigmoid() const

@@ -42,6 +42,21 @@ __global__ void vectorSub(const T* a, T b, T* out, size_t numElements)
     }
 }
 
+template <typename T>
+__global__ void matrixDotMul(const T* a, const T* b, T* out, size_t aRow, size_t aColumn, size_t bColumn)
+{
+    auto n = blockDim.x * blockIdx.x + threadIdx.x;
+    auto row = n / bColumn;
+    auto column = n % bColumn;
+    if (row < aRow && column < bColumn) {
+        auto sum = T {};
+        for (auto i = 0; i < aColumn; ++i) {
+            sum += a[row * aColumn + i] * b[i * bColumn + column];
+        }
+        out[row * bColumn + column] = sum;
+    }
+}
+
 template <typename T, typename R>
 cudaError_t CudaBinaryOp(const T* a, R b, T* out, size_t numElements, char op)
 {
@@ -59,6 +74,16 @@ cudaError_t CudaBinaryOp(const T* a, R b, T* out, size_t numElements, char op)
         assert(false);
         throw std::runtime_error { "Unsupported op" };
     }
+    return cudaGetLastError();
+}
+
+template <typename T>
+cudaError_t CudaMatrixDotMul(const T* a, const T* b, T* c, size_t aRow, size_t aColumn, size_t bColumn)
+{
+    size_t n = aRow * bColumn;
+    size_t threadsPerBlock = 256;
+    size_t blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+    matrixDotMul<<<blocksPerGrid, threadsPerBlock>>>(a, b, c, aRow, aColumn, bColumn);
     return cudaGetLastError();
 }
 
@@ -106,5 +131,16 @@ DefineCudaBinaryFunc(CudaAdd, '+', const std::float32_t*, std::float32_t, std::f
 
 DefineCudaBinaryFunc(CudaSub, '-', const std::float16_t*, const std::float16_t*, std::float16_t*);
 DefineCudaBinaryFunc(CudaSub, '-', const std::float32_t*, const std::float32_t*, std::float32_t*);
+
+#define DefineCudaDotMulFunc(Name, Type)                                                                               \
+    cudaError_t Name(const Type* cudaBufferA, const Type* cudaBufferB, Type* cudaBufferOut, size_t aRow,               \
+        size_t aColumn, size_t bColumn)                                                                                \
+    {                                                                                                                  \
+        return CudaMatrixDotMul(CudaUnderlineType(cudaBufferA), CudaUnderlineType(cudaBufferB),                        \
+            CudaUnderlineType(cudaBufferOut), aRow, aColumn, bColumn);                                                 \
+    }
+
+DefineCudaDotMulFunc(CudaDotMul, std::float16_t);
+DefineCudaDotMulFunc(CudaDotMul, std::float32_t);
 
 }
