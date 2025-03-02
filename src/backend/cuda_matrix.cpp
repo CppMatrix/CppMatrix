@@ -15,6 +15,10 @@ cudaError_t CudaAdd(const std::float16_t* cudaBufferA, const std::float16_t* cud
     size_t numElements);
 cudaError_t CudaAdd(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut,
     size_t numElements);
+cudaError_t CudaAdd(
+    const std::float16_t* cudaBufferA, std::float16_t cudaBufferB, std::float16_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaAdd(
+    const std::float32_t* cudaBufferA, std::float32_t cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements);
 
 }
 
@@ -152,12 +156,15 @@ public:
 
     CudaMatrix& operator+=(const CudaMatrix& other)
     {
-        return *this;
+        MakeSureShapeIsSame(other);
+        return *this = *this + other;
     }
 
     CudaMatrix operator+(T v) const
     {
-        return {};
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaAdd, m_cudaBuffer.get(), v, res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
     }
 
     CudaMatrix operator-(const CudaMatrix& other) const
