@@ -118,6 +118,22 @@ __global__ void matrixSigmoid(const float* in, float* out, size_t numElements)
     }
 }
 
+__global__ void matrixRelu(const half* in, half* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = (in[i] + __habs(in[i])) / (half)2;
+    }
+}
+
+__global__ void matrixRelu(const float* in, float* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = (in[i] + fabsf(in[i])) / 2;
+    }
+}
+
 template <typename T>
 __global__ void matrixTranspose(const T* a, T* out, size_t aRow, size_t aColumn)
 {
@@ -151,6 +167,30 @@ cudaError_t CudaBinaryOp(const TA a, const TB b, TOut out, size_t numElements, c
     return cudaGetLastError();
 }
 
+enum class UnaryOp {
+    Sigmoid,
+    Relu,
+};
+
+template <typename T>
+cudaError_t CudaUnaryOp(const T* in, T* out, size_t numElements, UnaryOp op)
+{
+    size_t threadsPerBlock = 256;
+    size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
+    switch (op) {
+    case UnaryOp::Sigmoid:
+        matrixSigmoid<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
+        break;
+    case UnaryOp::Relu:
+        matrixRelu<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
+        break;
+    default:
+        assert(false);
+        throw std::runtime_error { "Unsupported op" };
+    }
+    return cudaGetLastError();
+}
+
 template <typename T>
 cudaError_t CudaMatrixDotMul(const T* a, const T* b, T* c, size_t aRow, size_t aColumn, size_t bColumn)
 {
@@ -158,15 +198,6 @@ cudaError_t CudaMatrixDotMul(const T* a, const T* b, T* c, size_t aRow, size_t a
     size_t threadsPerBlock = 256;
     size_t blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
     matrixDotMul<<<blocksPerGrid, threadsPerBlock>>>(a, b, c, aRow, aColumn, bColumn);
-    return cudaGetLastError();
-}
-
-template <typename T>
-cudaError_t CudaMatrixSigmoid(const T* in, T* out, size_t numElements)
-{
-    size_t threadsPerBlock = 256;
-    size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
-    matrixSigmoid<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
     return cudaGetLastError();
 }
 
@@ -243,14 +274,17 @@ DefineCudaBinaryFunc(CudaProduct, '*', std::float32_t, const std::float32_t*, st
 DefineCudaDotProductFunc(CudaDotProduct, std::float16_t);
 DefineCudaDotProductFunc(CudaDotProduct, std::float32_t);
 
-#define DefineCudaSigmoidFunc(Name, Type)                                                                              \
+#define DefineCudaUnaryFunc(Name, Op, Type)                                                                            \
     cudaError_t Name(const Type* cudaBufferIn, Type* cudaBufferOut, size_t numElements)                                \
     {                                                                                                                  \
-        return CudaMatrixSigmoid(CudaUnderlineType(cudaBufferIn), CudaUnderlineType(cudaBufferOut), numElements);      \
+        return CudaUnaryOp(CudaUnderlineType(cudaBufferIn), CudaUnderlineType(cudaBufferOut), numElements, Op);        \
     }
 
-DefineCudaSigmoidFunc(CudaSigmoid, std::float16_t);
-DefineCudaSigmoidFunc(CudaSigmoid, std::float32_t);
+DefineCudaUnaryFunc(CudaSigmoid, UnaryOp::Sigmoid, std::float16_t);
+DefineCudaUnaryFunc(CudaSigmoid, UnaryOp::Sigmoid, std::float32_t);
+
+DefineCudaUnaryFunc(CudaRelu, UnaryOp::Relu, std::float16_t);
+DefineCudaUnaryFunc(CudaRelu, UnaryOp::Relu, std::float32_t);
 
 #define DefineCudaTransposeFunc(Name, Type)                                                                            \
     cudaError_t Name(const Type* cudaBufferIn, Type* cudaBufferOut, size_t inRow, size_t inColumn)                     \

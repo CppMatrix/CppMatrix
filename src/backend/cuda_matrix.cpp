@@ -51,6 +51,9 @@ cudaError_t CudaTranspose(
 cudaError_t CudaTranspose(
     const std::float32_t* cudaBufferIn, std::float32_t* cudaBufferOut, size_t inRow, size_t inColumn);
 
+cudaError_t CudaRelu(const std::float16_t* cudaBufferIn, std::float16_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaRelu(const std::float32_t* cudaBufferIn, std::float32_t* cudaBufferOut, size_t numElements);
+
 }
 
 export module cpp_matrix:cuda_matrix;
@@ -252,7 +255,9 @@ public:
 
     CudaMatrix Relu() const
     {
-        return {};
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaRelu, m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
     }
 
     T operator[](size_t row, size_t column) const
