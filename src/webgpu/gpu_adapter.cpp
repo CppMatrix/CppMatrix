@@ -27,11 +27,9 @@ public:
     {
         m_pQueue.reset(wgpuDeviceGetQueue(m_pDevice.get()));
 
-        WGPUSupportedLimits supportedLimits {};
-        if (wgpuAdapterGetLimits(m_pAdapter.get(), &supportedLimits) != WGPUStatus_Success) {
+        if (wgpuAdapterGetLimits(m_pAdapter.get(), &m_limits) != WGPUStatus_Success) {
             throw std::runtime_error { "wgpuAdapterGetLimits failed." };
         }
-        m_limits = supportedLimits.limits;
         m_isFloat16Supported = wgpuDeviceHasFeature(m_pDevice.get(), WGPUFeatureName_ShaderF16);
     }
 
