@@ -6,6 +6,7 @@ module;
 #include <future>
 #include <span>
 #include <stdexcept>
+#include <stdfloat>
 #include <unordered_map>
 #include <vector>
 #include <webgpu/webgpu.h>
@@ -16,7 +17,6 @@ using namespace webgpu;
 
 export module cpp_matrix:webgpu_matrix;
 import :matrix_type;
-import :std_patch;
 
 namespace cpp_matrix::backend {
 

@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <stdfloat>
 
 import cpp_matrix;
 
