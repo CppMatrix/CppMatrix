@@ -1,41 +1,42 @@
 module;
 
+#include <memory>
 #include <string>
+
+import cpp_matrix;
 
 export module keras:dense;
 import :layer;
 
 namespace keras {
 
-class DenseImpl {
-public:
-    DenseImpl(size_t units, std::string name, std::string activation) {};
-
-    void setInput(Layer input)
+template <typename Matrix>
+class DenseImpl : public ILayer<Matrix> {
+    Matrix& GetData() override
     {
-        m_input = input;
+        return m_matrix;
     }
 
 private:
-    Layer m_input {};
+    Matrix m_matrix {};
 };
 
-export class Dense : public LayerImpl<DenseImpl> {
+export template <typename Matrix>
+class Dense : public Layer<Matrix> {
 public:
-    Dense(size_t units, std::string activation)
-        : Dense(units, /*name=*/"", std::move(activation))
-    {
-    }
+    Dense(size_t units, std::string activation) { }
 
-    Dense(size_t units, std::string name, std::string activation)
-        : LayerImpl { units, std::move(name), std::move(activation) }
-    {
-    }
+    Dense(size_t units, std::string name, std::string activation) { }
 
-    Dense& operator()(Layer input)
+    Dense& operator()(Layer<Matrix> input)
     {
-        impl().setInput(input);
         return *this;
+    }
+
+private:
+    DenseImpl<Matrix>& impl()
+    {
+        return *static_cast<DenseImpl<Matrix>*>(this->m_p.get());
     }
 };
 

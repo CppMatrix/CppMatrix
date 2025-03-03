@@ -8,23 +8,21 @@ import :shape;
 
 namespace keras {
 
-export class Input : public Layer {
-    class Impl {
-    public:
-        Impl(Shape shape)
-            : m_shape { std::move(shape) }
-        {
-        }
-
-    private:
-        Shape m_shape {};
-    };
-
-public:
-    Input(Shape shape)
-        : Layer { new Impl { std::move(shape) }, [](void* p) { delete (Impl*)p; } }
+template <typename Matrix>
+class InputImpl : public ILayer<Matrix> {
+    Matrix& GetData() override
     {
+        return m_matrix;
     }
+
+private:
+    Matrix m_matrix {};
+};
+
+export template <typename Matrix>
+class Input : public Layer<Matrix> {
+public:
+    Input(Shape shape) { }
 };
 
 }

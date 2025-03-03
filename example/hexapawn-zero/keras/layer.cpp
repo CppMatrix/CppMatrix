@@ -3,36 +3,37 @@ module;
 #include <functional>
 #include <memory>
 
+import cpp_matrix;
+
 export module keras:layer;
 
 namespace keras {
 
-export class Layer {
+export template <typename Matrix>
+class ILayer {
+public:
+    virtual Matrix& GetData() = 0;
+};
+
+export template <typename Matrix>
+class Layer {
+    using ILayer = ILayer<Matrix>;
+
 public:
     Layer() = default;
 
-    Layer(void* p, std::function<void(void*)> deleter)
-        : m_obj { p, std::move(deleter) }
+    Layer(std::shared_ptr<ILayer> p)
+        : m_p { std::move(p) }
     {
+    }
+
+    Matrix& GetData()
+    {
+        return m_p->GetData();
     }
 
 protected:
-    std::shared_ptr<void> m_obj {};
-};
-
-export template <typename T>
-class LayerImpl : public Layer {
-public:
-    LayerImpl(auto&&... args)
-        : Layer { new T { std::forward<decltype(args)>(args)... }, [](void* p) { delete (T*)p; } }
-    {
-    }
-
-protected:
-    T& impl()
-    {
-        return *(T*)m_obj.get();
-    }
+    std::shared_ptr<ILayer> m_p {};
 };
 
 }
