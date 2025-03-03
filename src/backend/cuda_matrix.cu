@@ -43,6 +43,15 @@ __global__ void vectorSub(const T* a, T b, T* out, size_t numElements)
 }
 
 template <typename T>
+__global__ void vectorSub(T a, const T* b, T* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = a - b[i];
+    }
+}
+
+template <typename T>
 __global__ void vectorProduct(const T* a, const T* b, T* out, size_t numElements)
 {
     auto i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -94,6 +103,15 @@ cudaError_t CudaBinaryOp(const T* a, R b, T* out, size_t numElements, char op)
         assert(false);
         throw std::runtime_error { "Unsupported op" };
     }
+    return cudaGetLastError();
+}
+
+template <typename T>
+cudaError_t CudaScalarSub(T a, const T* b, T* out, size_t numElements)
+{
+    size_t threadsPerBlock = 256;
+    size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
+    vectorSub<<<blocksPerGrid, threadsPerBlock>>>(a, b, out, numElements);
     return cudaGetLastError();
 }
 
@@ -151,6 +169,20 @@ DefineCudaBinaryFunc(CudaAdd, '+', const std::float32_t*, std::float32_t, std::f
 
 DefineCudaBinaryFunc(CudaSub, '-', const std::float16_t*, const std::float16_t*, std::float16_t*);
 DefineCudaBinaryFunc(CudaSub, '-', const std::float32_t*, const std::float32_t*, std::float32_t*);
+
+cudaError_t CudaSub(
+    std::float16_t a, const std::float16_t* cudaBufferB, std::float16_t* cudaBufferOut, size_t numElements)
+{
+    return CudaScalarSub(
+        CudaUnderlineType(a), CudaUnderlineType(cudaBufferB), CudaUnderlineType(cudaBufferOut), numElements);
+}
+
+cudaError_t CudaSub(
+    std::float32_t a, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements)
+{
+    return CudaScalarSub(
+        CudaUnderlineType(a), CudaUnderlineType(cudaBufferB), CudaUnderlineType(cudaBufferOut), numElements);
+}
 
 DefineCudaBinaryFunc(CudaProduct, '*', const std::float16_t*, const std::float16_t*, std::float16_t*);
 DefineCudaBinaryFunc(CudaProduct, '*', const std::float32_t*, const std::float32_t*, std::float32_t*);
