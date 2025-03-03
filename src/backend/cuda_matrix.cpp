@@ -33,6 +33,10 @@ cudaError_t CudaProduct(const std::float16_t* cudaBufferA, const std::float16_t*
     std::float16_t* cudaBufferOut, size_t numElements);
 cudaError_t CudaProduct(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB,
     std::float32_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaProduct(
+    std::float16_t a, const std::float16_t* cudaBufferB, std::float16_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaProduct(
+    std::float32_t a, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements);
 
 cudaError_t CudaDotProduct(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB,
     std::float16_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
@@ -67,6 +71,9 @@ export template <MatrixElementType T>
 class CudaMatrix {
     template <MatrixElementType R>
     friend CudaMatrix<R> operator-(R v, const CudaMatrix<R>& m);
+
+    template <MatrixElementType R>
+    friend CudaMatrix<R> operator*(R v, const CudaMatrix<R>& m);
 
 public:
     using ElementType = T;
@@ -266,6 +273,14 @@ CudaMatrix<T> operator-(T v, const CudaMatrix<T>& m)
 {
     CudaMatrix<T> res { m.m_row, m.m_column };
     Cuda(CudaSub, v, m.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m.m_row * m.m_column);
+    return res;
+}
+
+export template <MatrixElementType T>
+CudaMatrix<T> operator*(T v, const CudaMatrix<T>& m)
+{
+    CudaMatrix<T> res { m.m_row, m.m_column };
+    Cuda(CudaProduct, v, m.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m.m_row * m.m_column);
     return res;
 }
 

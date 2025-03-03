@@ -25,6 +25,15 @@ __global__ void vectorAdd(const T* a, T b, T* out, size_t numElements)
 }
 
 template <typename T>
+__global__ void vectorAdd(T a, const T* b, T* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = a + b[i];
+    }
+}
+
+template <typename T>
 __global__ void vectorSub(const T* a, const T* b, T* out, size_t numElements)
 {
     auto i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -70,6 +79,15 @@ __global__ void vectorProduct(const T* a, T b, T* out, size_t numElements)
 }
 
 template <typename T>
+__global__ void vectorProduct(T a, const T* b, T* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = a * b[i];
+    }
+}
+
+template <typename T>
 __global__ void matrixDotMul(const T* a, const T* b, T* out, size_t aRow, size_t aColumn, size_t bColumn)
 {
     auto n = blockDim.x * blockIdx.x + threadIdx.x;
@@ -84,8 +102,8 @@ __global__ void matrixDotMul(const T* a, const T* b, T* out, size_t aRow, size_t
     }
 }
 
-template <typename T, typename R>
-cudaError_t CudaBinaryOp(const T* a, R b, T* out, size_t numElements, char op)
+template <typename TA, typename TB, typename TOut>
+cudaError_t CudaBinaryOp(const TA a, const TB b, TOut out, size_t numElements, char op)
 {
     size_t threadsPerBlock = 256;
     size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
@@ -103,15 +121,6 @@ cudaError_t CudaBinaryOp(const T* a, R b, T* out, size_t numElements, char op)
         assert(false);
         throw std::runtime_error { "Unsupported op" };
     }
-    return cudaGetLastError();
-}
-
-template <typename T>
-cudaError_t CudaScalarSub(T a, const T* b, T* out, size_t numElements)
-{
-    size_t threadsPerBlock = 256;
-    size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
-    vectorSub<<<blocksPerGrid, threadsPerBlock>>>(a, b, out, numElements);
     return cudaGetLastError();
 }
 
@@ -169,23 +178,13 @@ DefineCudaBinaryFunc(CudaAdd, '+', const std::float32_t*, std::float32_t, std::f
 
 DefineCudaBinaryFunc(CudaSub, '-', const std::float16_t*, const std::float16_t*, std::float16_t*);
 DefineCudaBinaryFunc(CudaSub, '-', const std::float32_t*, const std::float32_t*, std::float32_t*);
-
-cudaError_t CudaSub(
-    std::float16_t a, const std::float16_t* cudaBufferB, std::float16_t* cudaBufferOut, size_t numElements)
-{
-    return CudaScalarSub(
-        CudaUnderlineType(a), CudaUnderlineType(cudaBufferB), CudaUnderlineType(cudaBufferOut), numElements);
-}
-
-cudaError_t CudaSub(
-    std::float32_t a, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements)
-{
-    return CudaScalarSub(
-        CudaUnderlineType(a), CudaUnderlineType(cudaBufferB), CudaUnderlineType(cudaBufferOut), numElements);
-}
+DefineCudaBinaryFunc(CudaSub, '-', std::float16_t, const std::float16_t*, std::float16_t*);
+DefineCudaBinaryFunc(CudaSub, '-', std::float32_t, const std::float32_t*, std::float32_t*);
 
 DefineCudaBinaryFunc(CudaProduct, '*', const std::float16_t*, const std::float16_t*, std::float16_t*);
 DefineCudaBinaryFunc(CudaProduct, '*', const std::float32_t*, const std::float32_t*, std::float32_t*);
+DefineCudaBinaryFunc(CudaProduct, '*', std::float16_t, const std::float16_t*, std::float16_t*);
+DefineCudaBinaryFunc(CudaProduct, '*', std::float32_t, const std::float32_t*, std::float32_t*);
 
 #define DefineCudaDotProductFunc(Name, Type)                                                                           \
     cudaError_t Name(const Type* cudaBufferA, const Type* cudaBufferB, Type* cudaBufferOut, size_t aRow,               \
