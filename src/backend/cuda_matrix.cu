@@ -93,7 +93,7 @@ __global__ void matrixDotMul(const T* a, const T* b, T* out, size_t aRow, size_t
     auto n = blockDim.x * blockIdx.x + threadIdx.x;
     auto row = n / bColumn;
     auto column = n % bColumn;
-    if (row < aRow && column < bColumn) {
+    if (row < aRow) {
         auto sum = T {};
         for (auto i = 0; i < aColumn; ++i) {
             sum += a[row * aColumn + i] * b[i * bColumn + column];
@@ -115,6 +115,17 @@ __global__ void matrixSigmoid(const float* in, float* out, size_t numElements)
     auto i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < numElements) {
         out[i] = 1 / (1 + expf(-in[i]));
+    }
+}
+
+template <typename T>
+__global__ void matrixTranspose(const T* a, T* out, size_t aRow, size_t aColumn)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    auto row = i / aColumn;
+    auto column = i % aColumn;
+    if (row < aRow) {
+        out[column * aRow + row] = a[row * aColumn + column];
     }
 }
 
@@ -156,6 +167,16 @@ cudaError_t CudaMatrixSigmoid(const T* in, T* out, size_t numElements)
     size_t threadsPerBlock = 256;
     size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
     matrixSigmoid<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
+    return cudaGetLastError();
+}
+
+template <typename T>
+cudaError_t CudaMatrixTranspose(const T* in, T* out, size_t inRow, size_t inColumn)
+{
+    size_t n = inRow * inColumn;
+    size_t threadsPerBlock = 256;
+    size_t blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+    matrixTranspose<<<blocksPerGrid, threadsPerBlock>>>(in, out, inRow, inColumn);
     return cudaGetLastError();
 }
 
@@ -230,5 +251,15 @@ DefineCudaDotProductFunc(CudaDotProduct, std::float32_t);
 
 DefineCudaSigmoidFunc(CudaSigmoid, std::float16_t);
 DefineCudaSigmoidFunc(CudaSigmoid, std::float32_t);
+
+#define DefineCudaTransposeFunc(Name, Type)                                                                            \
+    cudaError_t Name(const Type* cudaBufferIn, Type* cudaBufferOut, size_t inRow, size_t inColumn)                     \
+    {                                                                                                                  \
+        return CudaMatrixTranspose(                                                                                    \
+            CudaUnderlineType(cudaBufferIn), CudaUnderlineType(cudaBufferOut), inRow, inColumn);                       \
+    }
+
+DefineCudaTransposeFunc(CudaTranspose, std::float16_t);
+DefineCudaTransposeFunc(CudaTranspose, std::float32_t);
 
 }
