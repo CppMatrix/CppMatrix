@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-    set(CMAKE_CUDA_ARCHITECTURES "native")
+    set(CMAKE_CUDA_ARCHITECTURES "89")
 endif()
 
 project(cpp_matrix CXX CUDA)
