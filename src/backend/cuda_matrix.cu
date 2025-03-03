@@ -43,6 +43,24 @@ __global__ void vectorSub(const T* a, T b, T* out, size_t numElements)
 }
 
 template <typename T>
+__global__ void vectorProduct(const T* a, const T* b, T* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = a[i] * b[i];
+    }
+}
+
+template <typename T>
+__global__ void vectorProduct(const T* a, T b, T* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = a[i] * b;
+    }
+}
+
+template <typename T>
 __global__ void matrixDotMul(const T* a, const T* b, T* out, size_t aRow, size_t aColumn, size_t bColumn)
 {
     auto n = blockDim.x * blockIdx.x + threadIdx.x;
@@ -69,7 +87,9 @@ cudaError_t CudaBinaryOp(const T* a, R b, T* out, size_t numElements, char op)
     case '-':
         vectorSub<<<blocksPerGrid, threadsPerBlock>>>(a, b, out, numElements);
         break;
-
+    case '*':
+        vectorProduct<<<blocksPerGrid, threadsPerBlock>>>(a, b, out, numElements);
+        break;
     default:
         assert(false);
         throw std::runtime_error { "Unsupported op" };
@@ -132,7 +152,10 @@ DefineCudaBinaryFunc(CudaAdd, '+', const std::float32_t*, std::float32_t, std::f
 DefineCudaBinaryFunc(CudaSub, '-', const std::float16_t*, const std::float16_t*, std::float16_t*);
 DefineCudaBinaryFunc(CudaSub, '-', const std::float32_t*, const std::float32_t*, std::float32_t*);
 
-#define DefineCudaDotMulFunc(Name, Type)                                                                               \
+DefineCudaBinaryFunc(CudaProduct, '*', const std::float16_t*, const std::float16_t*, std::float16_t*);
+DefineCudaBinaryFunc(CudaProduct, '*', const std::float32_t*, const std::float32_t*, std::float32_t*);
+
+#define DefineCudaDotProductFunc(Name, Type)                                                                           \
     cudaError_t Name(const Type* cudaBufferA, const Type* cudaBufferB, Type* cudaBufferOut, size_t aRow,               \
         size_t aColumn, size_t bColumn)                                                                                \
     {                                                                                                                  \
@@ -140,7 +163,7 @@ DefineCudaBinaryFunc(CudaSub, '-', const std::float32_t*, const std::float32_t*,
             CudaUnderlineType(cudaBufferOut), aRow, aColumn, bColumn);                                                 \
     }
 
-DefineCudaDotMulFunc(CudaDotMul, std::float16_t);
-DefineCudaDotMulFunc(CudaDotMul, std::float32_t);
+DefineCudaDotProductFunc(CudaDotProduct, std::float16_t);
+DefineCudaDotProductFunc(CudaDotProduct, std::float32_t);
 
 }

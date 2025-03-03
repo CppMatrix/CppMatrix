@@ -25,9 +25,14 @@ cudaError_t CudaSub(const std::float16_t* cudaBufferA, const std::float16_t* cud
 cudaError_t CudaSub(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut,
     size_t numElements);
 
-cudaError_t CudaDotMul(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB,
+cudaError_t CudaProduct(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB,
+    std::float16_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaProduct(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB,
+    std::float32_t* cudaBufferOut, size_t numElements);
+
+cudaError_t CudaDotProduct(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB,
     std::float16_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
-cudaError_t CudaDotMul(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB,
+cudaError_t CudaDotProduct(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB,
     std::float32_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
 }
 
@@ -194,7 +199,7 @@ public:
         }
 
         CudaMatrix res { m_row, other.m_column };
-        Cuda(CudaDotMul, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row, m_column,
+        Cuda(CudaDotProduct, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row, m_column,
             other.m_column);
         return res;
     }
@@ -211,7 +216,11 @@ public:
 
     CudaMatrix ElementProduct(const CudaMatrix& other) const
     {
-        return {};
+        MakeSureShapeIsSame(other);
+
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaProduct, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
     }
 
     CudaMatrix Relu() const
