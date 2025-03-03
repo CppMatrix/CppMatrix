@@ -620,11 +620,6 @@ MATRIX_TEST(Relu)
 
 MATRIX_TEST(Pow)
 {
-    if (std::is_same_v<Matrix, cpp_matrix::WebGpuMatrix<std::float16_t>>
-        || std::is_same_v<Matrix, cpp_matrix::WebGpuMatrix<std::float32_t>>) {
-        GTEST_SKIP() << "WebGpuMatrix() is not supported Pow test due to precision.";
-    }
-
     auto test = [](size_t row, size_t column, Matrix::ElementType e) {
         Matrix x { row, column };
 

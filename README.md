@@ -1,5 +1,15 @@
-CppMatrix (experiment)
+CppMatrix
 ==
+Supported backed:
+
+* Cpu
+* Cuda
+* WebGpu (experiment)
+
+Supported type:
+
+* std::float16_t
+* std::float32_t
 
 ## Install Dependencies
 ### Install Cuda-Toolkit 12.8

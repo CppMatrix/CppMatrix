@@ -137,11 +137,11 @@ int main(int argc, char* argv[])
         }
     } else if (options.useWebGpuMatrix) {
         if (options.useF16) {
-            run(NeuralNetwork<WebGpuMatrix<std::float16_t>> { kInputNodes, kHiddenNodes, kOutputNodes,
+            run(NeuralNetwork<experiment::WebGpuMatrix<std::float16_t>> { kInputNodes, kHiddenNodes, kOutputNodes,
                     (std::float16_t)kLearningRate },
                 options);
         } else {
-            run(NeuralNetwork<WebGpuMatrix<std::float32_t>> { kInputNodes, kHiddenNodes, kOutputNodes,
+            run(NeuralNetwork<experiment::WebGpuMatrix<std::float32_t>> { kInputNodes, kHiddenNodes, kOutputNodes,
                     (std::float16_t)kLearningRate },
                 options);
         }

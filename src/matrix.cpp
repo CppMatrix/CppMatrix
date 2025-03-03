@@ -172,8 +172,10 @@ private:
 export template <MatrixElementType T>
 using CpuMatrix = Matrix<backend::CpuMatrix<T>>;
 
-export template <MatrixElementType T>
-using WebGpuMatrix = Matrix<backend::WebGpuMatrix<T>>;
+namespace experiment {
+    export template <MatrixElementType T>
+    using WebGpuMatrix = Matrix<backend::WebGpuMatrix<T>>;
+}
 
 export template <MatrixElementType T>
 using CudaMatrix = Matrix<backend::CudaMatrix<T>>;
@@ -192,10 +194,10 @@ using CudaMatrix = Matrix<backend::CudaMatrix<T>>;
 #define Operators(M) \
     OperatorsElementType(M, std::float16_t) \
     OperatorsElementType(M, std::float32_t)
-
-Operators(CpuMatrix)
-Operators(CudaMatrix)
-Operators(WebGpuMatrix)
 // clang-format on
+
+Operators(CpuMatrix);
+Operators(CudaMatrix);
+Operators(experiment::WebGpuMatrix);
 
 }
