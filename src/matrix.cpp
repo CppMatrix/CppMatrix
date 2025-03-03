@@ -150,6 +150,11 @@ public:
         return m_matrix.Relu();
     }
 
+    Matrix Pow(ElementType e) const
+    {
+        return m_matrix.Pow(e);
+    }
+
     float operator[](size_t row, size_t column) const
     {
         return m_matrix[row, column];

@@ -184,6 +184,15 @@ public:
         return res;
     }
 
+    CpuMatrix Pow(T e) const
+    {
+        CpuMatrix res { m_row, m_column };
+        for (auto i = 0u; i < m_row * m_column; ++i) {
+            res.m_data[i] = pow(m_data[i], e);
+        }
+        return res;
+    }
+
     T operator[](size_t row, size_t column) const
     {
         if (row >= m_row || column >= m_column) {

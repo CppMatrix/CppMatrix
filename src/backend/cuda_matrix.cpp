@@ -1,6 +1,7 @@
 module;
 
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cuda_runtime.h>
 #include <format>
@@ -54,6 +55,8 @@ cudaError_t CudaTranspose(
 cudaError_t CudaRelu(const std::float16_t* cudaBufferIn, std::float16_t* cudaBufferOut, size_t numElements);
 cudaError_t CudaRelu(const std::float32_t* cudaBufferIn, std::float32_t* cudaBufferOut, size_t numElements);
 
+cudaError_t CudaPow(
+    const std::float32_t* cudaBufferA, std::float32_t e, std::float32_t* cudaBufferOut, size_t numElements);
 }
 
 export module cpp_matrix:cuda_matrix;
@@ -260,6 +263,8 @@ public:
         return res;
     }
 
+    CudaMatrix Pow(T e) const;
+
     T operator[](size_t row, size_t column) const
     {
         // TODO: need optimization.
@@ -285,6 +290,28 @@ private:
     size_t m_column {};
     std::unique_ptr<T, decltype(&cudaFree)> m_cudaBuffer { nullptr, &cudaFree };
 };
+
+template <>
+CudaMatrix<std::float32_t> CudaMatrix<std::float32_t>::Pow(std::float32_t e) const
+{
+    CudaMatrix<std::float32_t> res { m_row, m_column };
+    Cuda(CudaPow, m_cudaBuffer.get(), e, res.m_cudaBuffer.get(), m_row * m_column);
+    return res;
+}
+
+template <>
+CudaMatrix<std::float16_t> CudaMatrix<std::float16_t>::Pow(std::float16_t e) const
+{
+    // Seems cuda doesn't supply pow() for float16_t, so convert to cpu to caculate.
+    auto data = Read();
+    for (auto& d : data) {
+        d = pow(d, e);
+    }
+
+    CudaMatrix<std::float16_t> res { m_row, m_column };
+    res.Write(std::span<std::float16_t> { data.begin(), data.end() });
+    return res;
+}
 
 export template <MatrixElementType T>
 CudaMatrix<T> operator-(T v, const CudaMatrix<T>& m)
