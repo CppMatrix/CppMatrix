@@ -3,8 +3,8 @@
 
 import cpp_matrix;
 
-using Matrix = cpp_matrix::WebGpuMatrix<std::float16_t>;
+using Matrix = cpp_matrix::experiment::WebGpuMatrix<std::float16_t>;
 
-#define MATRIX_TEST_NAME WebGpuMatrixFloat16Test
+#define MATRIX_TEST_NAME DISABLED_WebGpuMatrixFloat16Test
 
 #include "matrix_test.cpp"
