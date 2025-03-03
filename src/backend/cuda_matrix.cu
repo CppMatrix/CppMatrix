@@ -102,6 +102,22 @@ __global__ void matrixDotMul(const T* a, const T* b, T* out, size_t aRow, size_t
     }
 }
 
+__global__ void matrixSigmoid(const half* in, half* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = (half)1.0 / ((half)1.0 + hexp(-in[i]));
+    }
+}
+
+__global__ void matrixSigmoid(const float* in, float* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = 1 / (1 + expf(-in[i]));
+    }
+}
+
 template <typename TA, typename TB, typename TOut>
 cudaError_t CudaBinaryOp(const TA a, const TB b, TOut out, size_t numElements, char op)
 {
@@ -131,6 +147,15 @@ cudaError_t CudaMatrixDotMul(const T* a, const T* b, T* c, size_t aRow, size_t a
     size_t threadsPerBlock = 256;
     size_t blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
     matrixDotMul<<<blocksPerGrid, threadsPerBlock>>>(a, b, c, aRow, aColumn, bColumn);
+    return cudaGetLastError();
+}
+
+template <typename T>
+cudaError_t CudaMatrixSigmoid(const T* in, T* out, size_t numElements)
+{
+    size_t threadsPerBlock = 256;
+    size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
+    matrixSigmoid<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
     return cudaGetLastError();
 }
 
@@ -196,5 +221,14 @@ DefineCudaBinaryFunc(CudaProduct, '*', std::float32_t, const std::float32_t*, st
 
 DefineCudaDotProductFunc(CudaDotProduct, std::float16_t);
 DefineCudaDotProductFunc(CudaDotProduct, std::float32_t);
+
+#define DefineCudaSigmoidFunc(Name, Type)                                                                              \
+    cudaError_t Name(const Type* cudaBufferIn, Type* cudaBufferOut, size_t numElements)                                \
+    {                                                                                                                  \
+        return CudaMatrixSigmoid(CudaUnderlineType(cudaBufferIn), CudaUnderlineType(cudaBufferOut), numElements);      \
+    }
+
+DefineCudaSigmoidFunc(CudaSigmoid, std::float16_t);
+DefineCudaSigmoidFunc(CudaSigmoid, std::float32_t);
 
 }

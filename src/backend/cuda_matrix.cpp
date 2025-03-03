@@ -42,6 +42,10 @@ cudaError_t CudaDotProduct(const std::float16_t* cudaBufferA, const std::float16
     std::float16_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
 cudaError_t CudaDotProduct(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB,
     std::float32_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
+
+cudaError_t CudaSigmoid(const std::float16_t* cudaBufferIn, std::float16_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaSigmoid(const std::float32_t* cudaBufferIn, std::float32_t* cudaBufferOut, size_t numElements);
+
 }
 
 export module cpp_matrix:cuda_matrix;
@@ -220,7 +224,9 @@ public:
 
     CudaMatrix Sigmoid() const
     {
-        return {};
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaSigmoid, m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
     }
 
     CudaMatrix Transpose() const
