@@ -145,6 +145,14 @@ __global__ void matrixTranspose(const T* a, T* out, size_t aRow, size_t aColumn)
     }
 }
 
+__global__ void vectorPow(const float* a, float e, float* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = powf(a[i], e);
+    }
+}
+
 template <typename TA, typename TB, typename TOut>
 cudaError_t CudaBinaryOp(const TA a, const TB b, TOut out, size_t numElements, char op)
 {
@@ -198,6 +206,15 @@ cudaError_t CudaMatrixDotMul(const T* a, const T* b, T* c, size_t aRow, size_t a
     size_t threadsPerBlock = 256;
     size_t blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
     matrixDotMul<<<blocksPerGrid, threadsPerBlock>>>(a, b, c, aRow, aColumn, bColumn);
+    return cudaGetLastError();
+}
+
+template <typename T>
+cudaError_t CudaVectorPow(const T* in, T e, T* out, size_t numElements)
+{
+    size_t threadsPerBlock = 256;
+    size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
+    vectorPow<<<blocksPerGrid, threadsPerBlock>>>(in, e, out, numElements);
     return cudaGetLastError();
 }
 
@@ -295,5 +312,14 @@ DefineCudaUnaryFunc(CudaRelu, UnaryOp::Relu, std::float32_t);
 
 DefineCudaTransposeFunc(CudaTranspose, std::float16_t);
 DefineCudaTransposeFunc(CudaTranspose, std::float32_t);
+
+#define DefineCudaPowFunc(Name, Type)                                                                                  \
+    cudaError_t Name(const Type* cudaBufferIn, Type e, Type* cudaBufferOut, size_t numElements)                        \
+    {                                                                                                                  \
+        return CudaVectorPow(                                                                                          \
+            CudaUnderlineType(cudaBufferIn), CudaUnderlineType(e), CudaUnderlineType(cudaBufferOut), numElements);     \
+    }
+
+DefineCudaPowFunc(CudaPow, std::float32_t);
 
 }

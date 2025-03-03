@@ -358,6 +358,48 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {{
         return output;
     }
 
+    WebGpuMatrix Pow(T e) const
+    {
+        auto adapter = GpuInstance::GetInstance().GetAdapter();
+        auto vbuffer = adapter->CreateBuffer<T>(4);
+        constexpr auto vbufferByteSize = sizeof(T) * 4;
+
+        // Buffer need 4 bytes aligned, so always write 4 bytes even it is std::float16_t
+        auto tmp = std::array<T, 4> { e, e, e, e };
+        auto p = (uint8_t*)&tmp[0];
+        static_assert(vbufferByteSize == sizeof(T) * tmp.size());
+        auto* pp = (void*)tmp.data();
+        wgpuQueueWriteBuffer(adapter->GetQueue(), vbuffer.get(), 0, pp, vbufferByteSize);
+
+        auto output = WebGpuMatrix { m_row, m_column };
+
+        // Caculate vec4x4
+        size_t N = (m_paddingRow >> 2) * m_paddingColumn;
+        auto code = std::format(R"({0}
+@group(0) @binding(0) var<storage, read_write> input1: array<vec4<{1}>>;
+@group(0) @binding(1) var<storage, read_write> input2: vec4<{1}>;
+@group(0) @binding(2) var<storage, read_write> output: array<vec4<{1}>>;
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {{
+    let i: u32 = global_id.x;
+    if (i < {2}) {{
+        output[i][0] = pow(input1[i][0], input2[0]);
+        output[i][1] = pow(input1[i][1], input2[1]);
+        output[i][2] = pow(input1[i][2], input2[2]);
+        output[i][3] = pow(input1[i][3], input2[3]);
+    }}
+}}
+)",
+            WgslFeatures(), WgslElementType(), N);
+        auto parameters = std::vector<Parameter> {
+            { GetBuffer(), BufferSize() },
+            { vbuffer.get(), vbufferByteSize },
+            { output.GetBuffer(), output.BufferSize() },
+        };
+        webgpu::Run(code, { parameters.begin(), parameters.end() }, N, 256);
+        return output;
+    }
+
 private:
     static constexpr const char* WgslElementType()
     {
