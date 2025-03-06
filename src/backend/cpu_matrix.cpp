@@ -1,5 +1,6 @@
 module;
 
+#include <cassert>
 #include <cmath>
 #include <span>
 #include <stdexcept>
@@ -60,6 +61,15 @@ public:
         }
 
         m_data = std::vector<T> { std::begin(data), std::end(data) };
+    }
+
+    void Write(std::vector<T> data)
+    {
+        if (m_row * m_column != data.size()) {
+            throw std::runtime_error { "Elements size is not the same." };
+        }
+
+        m_data = std::move(data);
     }
 
     std::vector<T> Read() const
@@ -205,6 +215,48 @@ public:
     size_t BufferSize() const
     {
         return sizeof(T) * m_row * m_column;
+    }
+
+    CpuMatrix Sum(bool byRow, bool byColumn) const
+    {
+        assert(byRow || byColumn);
+
+        if (byRow && byColumn) {
+            auto sum = ElementType {};
+            for (auto v : m_data) {
+                sum += v;
+            }
+            CpuMatrix res { 1, 1 };
+            res.Write({ sum });
+            return res;
+        }
+        if (byRow) {
+            std::vector<ElementType> data(m_row);
+            for (auto r = 0u; r < m_row; ++r) {
+                auto sum = ElementType {};
+                for (auto c = 0u; c < m_column; ++c) {
+                    sum += m_data[r * m_column + c];
+                }
+                data[r] = sum;
+            }
+            CpuMatrix res { m_row, 1 };
+            res.Write(std::move(data));
+            return res;
+        } else if (byColumn) {
+            std::vector<ElementType> data(m_column);
+            for (auto c = 0u; c < m_column; ++c) {
+                auto sum = ElementType {};
+                for (auto r = 0u; r < m_row; ++r) {
+                    sum += m_data[r * m_column + c];
+                }
+                data[c] = sum;
+            }
+            CpuMatrix res { 1, m_column };
+            res.Write(std::move(data));
+            return res;
+        } else {
+            throw std::runtime_error { "'byRow' and 'byColumn' can't be false at the same time" };
+        }
     }
 
 private:
