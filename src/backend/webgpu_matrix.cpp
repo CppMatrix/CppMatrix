@@ -400,6 +400,11 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {{
         return output;
     }
 
+    WebGpuMatrix Sum(bool byRow, bool byColumn) const
+    {
+        throw std::runtime_error { "Not implemented" };
+    }
+
 private:
     static constexpr const char* WgslElementType()
     {

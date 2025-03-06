@@ -88,6 +88,35 @@ __global__ void vectorProduct(T a, const T* b, T* out, size_t numElements)
 }
 
 template <typename T>
+__global__ void matrixSumByRow(const T* in, T* out, size_t row, size_t column)
+{
+    auto rowIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    if (rowIndex < row) {
+        auto sum = T {};
+        in += rowIndex * column;
+        for (auto c = 0u; c < column; ++c) {
+            sum += *in++;
+        }
+        out[rowIndex] = sum;
+    }
+}
+
+template <typename T>
+__global__ void matrixSumByColumn(const T* in, T* out, size_t row, size_t column)
+{
+    auto columnIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    if (columnIndex < column) {
+        auto sum = T {};
+        in += columnIndex;
+        for (auto r = 0u; r < row; ++r) {
+            sum += *in;
+            in += column;
+        }
+        out[columnIndex] = sum;
+    }
+}
+
+template <typename T>
 __global__ void matrixDotMul(const T* a, const T* b, T* out, size_t aRow, size_t aColumn, size_t bColumn)
 {
     auto n = blockDim.x * blockIdx.x + threadIdx.x;
@@ -219,6 +248,20 @@ cudaError_t CudaVectorPow(const T* in, T e, T* out, size_t numElements)
 }
 
 template <typename T>
+cudaError_t CudaMatrixSum(const T* in, T* out, bool byRow, size_t row, size_t column)
+{
+    auto group = byRow ? row : column;
+    size_t threadsPerBlock = 256;
+    size_t blocksPerGrid = (group + threadsPerBlock - 1) / threadsPerBlock;
+    if (byRow) {
+        matrixSumByRow<<<blocksPerGrid, threadsPerBlock>>>(in, out, row, column);
+    } else {
+        matrixSumByColumn<<<blocksPerGrid, threadsPerBlock>>>(in, out, row, column);
+    }
+    return cudaGetLastError();
+}
+
+template <typename T>
 cudaError_t CudaMatrixTranspose(const T* in, T* out, size_t inRow, size_t inColumn)
 {
     size_t n = inRow * inColumn;
@@ -321,5 +364,14 @@ DefineCudaTransposeFunc(CudaTranspose, std::float32_t);
     }
 
 DefineCudaPowFunc(CudaPow, std::float32_t);
+
+#define DefineCudaSumFunc(Name, Type)                                                                                  \
+    cudaError_t Name(const Type* cudaBufferIn, Type* cudaBufferOut, bool byRow, size_t row, size_t column)             \
+    {                                                                                                                  \
+        return CudaMatrixSum(CudaUnderlineType(cudaBufferIn), CudaUnderlineType(cudaBufferOut), byRow, row, column);   \
+    }
+
+DefineCudaSumFunc(CudaSum, std::float16_t);
+DefineCudaSumFunc(CudaSum, std::float32_t);
 
 }

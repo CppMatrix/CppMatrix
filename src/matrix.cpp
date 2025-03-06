@@ -160,6 +160,27 @@ public:
         return m_matrix[row, column];
     }
 
+    /// @brief Returns the sum of all elements in the matrix.
+    ///        The value will be a 1 x 1 matrix.
+    Matrix Sum() const
+    {
+        return m_matrix.Sum(/*byRow=*/true, /*byColumn=*/true);
+    }
+
+    /// @brief Returns the sum of all elements in the same row.
+    ///        If this is a R x C matrix, the result will be a R x 1 matrix.
+    Matrix SumByRow() const
+    {
+        return m_matrix.Sum(/*byRow=*/true, /*byColumn=*/false);
+    }
+
+    /// @brief Returns the sum of all elements in the same column.
+    ///        If this is a R x C matrix, the result will be a  1 x C matrix.
+    Matrix SumByColumn() const
+    {
+        return m_matrix.Sum(/*byRow=*/false, /*byColumn=*/true);
+    }
+
 private:
     Matrix(M m)
         : m_matrix { std::move(m) }

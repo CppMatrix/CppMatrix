@@ -57,6 +57,12 @@ cudaError_t CudaRelu(const std::float32_t* cudaBufferIn, std::float32_t* cudaBuf
 
 cudaError_t CudaPow(
     const std::float32_t* cudaBufferA, std::float32_t e, std::float32_t* cudaBufferOut, size_t numElements);
+
+cudaError_t CudaSum(
+    const std::float16_t* cudaBufferIn, std::float16_t* cudaBufferOut, bool byRow, size_t row, size_t column);
+cudaError_t CudaSum(
+    const std::float32_t* cudaBufferIn, std::float32_t* cudaBufferOut, bool byRow, size_t row, size_t column);
+
 }
 
 export module cpp_matrix:cuda_matrix;
@@ -270,6 +276,30 @@ public:
         // TODO: need optimization.
         auto vec = Read();
         return vec[row * m_column + column];
+    }
+
+    CudaMatrix Sum(bool byRow, bool byColumn) const
+    {
+        assert(byRow || byColumn);
+
+        if (byRow && byColumn) {
+            auto byRowRes = CudaMatrix { m_row, 1 };
+            Cuda(CudaSum, m_cudaBuffer.get(), byRowRes.m_cudaBuffer.get(), /*byRow=*/true, m_row, m_column);
+
+            auto res = CudaMatrix { 1, 1 };
+            Cuda(CudaSum, byRowRes.m_cudaBuffer.get(), res.m_cudaBuffer.get(), /*byRow=*/false, m_row, /*column=*/1);
+            return res;
+        } else if (byRow) {
+            auto byRowRes = CudaMatrix { m_row, 1 };
+            Cuda(CudaSum, m_cudaBuffer.get(), byRowRes.m_cudaBuffer.get(), /*byRow=*/true, m_row, m_column);
+            return byRowRes;
+        } else if (byColumn) {
+            auto byColumnRes = CudaMatrix { 1, m_column };
+            Cuda(CudaSum, m_cudaBuffer.get(), byColumnRes.m_cudaBuffer.get(), /*byRow=*/false, m_row, m_column);
+            return byColumnRes;
+        } else {
+            throw std::runtime_error { "'byRow' and 'byColumn' can't be false at the same time" };
+        }
     }
 
 private:

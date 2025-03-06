@@ -6,6 +6,7 @@
 #include <format>
 #include <gtest/gtest.h>
 #include <span>
+#include <vector>
 
 static constexpr Matrix::ElementType operator""_mf(long double v)
 {
@@ -646,5 +647,44 @@ MATRIX_TEST(Pow)
                 test(m, n, e);
             }
         }
+    }
+}
+
+MATRIX_TEST(Sum)
+{
+    std::vector<Matrix::ElementType> initData(3 * 4);
+    auto expectedSumByAll = (Matrix::ElementType)0.0_mf;
+    std::vector<Matrix::ElementType> expectedSumByRow(3);
+    std::vector<Matrix::ElementType> expectedSumByColumn(4);
+    for (auto r = 0u; r < 3; ++r) {
+        for (auto c = 0u; c < 4; ++c) {
+            auto i = r * 4 + c;
+            auto d = i * 1.1_mf;
+            initData[i] = d;
+            expectedSumByAll += d;
+            expectedSumByRow[r] += d;
+            expectedSumByColumn[c] += d;
+        }
+    }
+
+    Matrix x { 3, 4, { initData.begin(), initData.end() } };
+
+    auto sum = x.Sum();
+    ASSERT_EQ(sum.Row(), 1);
+    ASSERT_EQ(sum.Column(), 1);
+    ASSERT_FLOAT_EQ(sum.Read()[0], expectedSumByAll);
+
+    sum = x.SumByRow();
+    ASSERT_EQ(sum.Row(), 3);
+    ASSERT_EQ(sum.Column(), 1);
+    for (auto i = 0u; i < 3; ++i) {
+        ASSERT_FLOAT_EQ(sum.Read()[i], expectedSumByRow[i]);
+    }
+
+    sum = x.SumByColumn();
+    ASSERT_EQ(sum.Row(), 1);
+    ASSERT_EQ(sum.Column(), 4);
+    for (auto i = 0u; i < 4; ++i) {
+        ASSERT_FLOAT_EQ(sum.Read()[i], expectedSumByColumn[i]);
     }
 }
