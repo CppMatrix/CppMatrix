@@ -1,4 +1,5 @@
 set(SRCS
+    size_test.cpp
     tensor_test.cpp
 )
 
