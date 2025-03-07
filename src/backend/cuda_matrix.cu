@@ -61,6 +61,33 @@ __global__ void vectorSub(T a, const T* b, T* out, size_t numElements)
 }
 
 template <typename T>
+__global__ void vectorDiv(const T* a, const T* b, T* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = a[i] / b[i];
+    }
+}
+
+template <typename T>
+__global__ void vectorDiv(const T* a, T b, T* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = a[i] / b;
+    }
+}
+
+template <typename T>
+__global__ void vectorDiv(T a, const T* b, T* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = a / b[i];
+    }
+}
+
+template <typename T>
 __global__ void vectorProduct(const T* a, const T* b, T* out, size_t numElements)
 {
     auto i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -197,6 +224,9 @@ cudaError_t CudaBinaryOp(const TA a, const TB b, TOut out, size_t numElements, c
     case '*':
         vectorProduct<<<blocksPerGrid, threadsPerBlock>>>(a, b, out, numElements);
         break;
+    case '/':
+        vectorDiv<<<blocksPerGrid, threadsPerBlock>>>(a, b, out, numElements);
+        break;
     default:
         assert(false);
         throw std::runtime_error { "Unsupported op" };
@@ -322,6 +352,11 @@ DefineCudaBinaryFunc(CudaProduct, '*', const std::float16_t*, const std::float16
 DefineCudaBinaryFunc(CudaProduct, '*', const std::float32_t*, const std::float32_t*, std::float32_t*);
 DefineCudaBinaryFunc(CudaProduct, '*', std::float16_t, const std::float16_t*, std::float16_t*);
 DefineCudaBinaryFunc(CudaProduct, '*', std::float32_t, const std::float32_t*, std::float32_t*);
+
+DefineCudaBinaryFunc(CudaDiv, '/', const std::float16_t*, const std::float16_t*, std::float16_t*);
+DefineCudaBinaryFunc(CudaDiv, '/', const std::float16_t*, std::float16_t, std::float16_t*);
+DefineCudaBinaryFunc(CudaDiv, '/', const std::float32_t*, const std::float32_t*, std::float32_t*);
+DefineCudaBinaryFunc(CudaDiv, '/', const std::float32_t*, std::float32_t, std::float32_t*);
 
 #define DefineCudaDotProductFunc(Name, Type)                                                                           \
     cudaError_t Name(const Type* cudaBufferA, const Type* cudaBufferB, Type* cudaBufferOut, size_t aRow,               \

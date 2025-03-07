@@ -7,7 +7,7 @@ add_executable(cpp_matrix_test
     webgpu_matrix_float32_test.cpp
 )
 target_link_libraries(cpp_matrix_test
-    cpp_matrix
+    cpp_matrix.neural_network
     GTest::gtest_main
 )
 gtest_discover_tests(cpp_matrix_test)

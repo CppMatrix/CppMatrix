@@ -62,6 +62,35 @@ public:
         Write(initData);
     }
 
+    Matrix(std::initializer_list<std::initializer_list<ElementType>> initData)
+    {
+        // Find the max column size.
+        size_t maxColumn {};
+        for (const auto& r : initData) {
+            maxColumn = std::max(maxColumn, r.size());
+        }
+
+        // Prepare fill data.
+        std::vector<ElementType> data(initData.size() * maxColumn);
+        auto r = 0u;
+        for (const auto& rd : initData) {
+            auto c = 0u;
+            for (const auto& cd : rd) {
+                data[r * maxColumn + c] = cd;
+                ++c;
+            }
+            ++r;
+        }
+
+        m_matrix = M { initData.size(), maxColumn };
+        m_matrix.Write(std::span<ElementType> { data });
+    }
+
+    Matrix(Matrix&& m)
+        : m_matrix { std::move(m.m_matrix) }
+    {
+    }
+
     template <size_t N>
     void Write(std::span<ElementType, N> data)
     {
@@ -92,6 +121,11 @@ public:
     Matrix operator+(ElementType v) const
     {
         return m_matrix + v;
+    }
+
+    Matrix operator/(ElementType v) const
+    {
+        return m_matrix / v;
     }
 
     Matrix operator-(ElementType v) const
@@ -128,6 +162,12 @@ public:
     Matrix& operator=(std::span<ElementType> data)
     {
         return operator=(std::vector<ElementType> { data.begin(), data.end() });
+    }
+
+    Matrix& operator=(Matrix&& m)
+    {
+        m_matrix = std::move(m.m_matrix);
+        return *this;
     }
 
     Matrix Transpose() const
