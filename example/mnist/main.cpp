@@ -17,7 +17,6 @@ struct Options {
     std::string training_file;
     std::string test_file;
     bool useF16 {};
-    bool useWebGpuMatrix {};
     bool useCudaMatrix {};
 };
 
@@ -27,8 +26,6 @@ static Options parse_options(int argc, char* argv[])
     for (int i = 0; i < argc; ++i) {
         if (!strcmp(argv[i], "--use-cuda")) {
             options.useCudaMatrix = true;
-        } else if (!strcmp(argv[i], "--use-webgpu")) {
-            options.useWebGpuMatrix = true;
         } else if (!strcmp(argv[i], "--use-f16")) {
             options.useF16 = true;
         } else if (!strcmp(argv[i], "--epochs")) {
@@ -132,16 +129,6 @@ int main(int argc, char* argv[])
                 options);
         } else {
             run(NeuralNetwork<CudaMatrix<std::float32_t>> { kInputNodes, kHiddenNodes, kOutputNodes,
-                    (std::float16_t)kLearningRate },
-                options);
-        }
-    } else if (options.useWebGpuMatrix) {
-        if (options.useF16) {
-            run(NeuralNetwork<experiment::WebGpuMatrix<std::float16_t>> { kInputNodes, kHiddenNodes, kOutputNodes,
-                    (std::float16_t)kLearningRate },
-                options);
-        } else {
-            run(NeuralNetwork<experiment::WebGpuMatrix<std::float32_t>> { kInputNodes, kHiddenNodes, kOutputNodes,
                     (std::float16_t)kLearningRate },
                 options);
         }

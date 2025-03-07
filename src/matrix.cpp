@@ -9,7 +9,6 @@ module;
 export module cpp_matrix:matrix;
 import :cpu_matrix;
 import :cuda_matrix;
-import :webgpu_matrix;
 import :matrix_type;
 
 namespace cpp_matrix {
@@ -17,9 +16,7 @@ namespace cpp_matrix {
 template <typename T>
 concept MatrixBackend
     = std::is_same_v<T, backend::CpuMatrix<std::float16_t>> || std::is_same_v<T, backend::CpuMatrix<std::float32_t>>
-    || std::is_same_v<T, backend::CudaMatrix<std::float16_t>> || std::is_same_v<T, backend::CudaMatrix<std::float32_t>>
-    || std::is_same_v<T, backend::WebGpuMatrix<std::float16_t>>
-    || std::is_same_v<T, backend::WebGpuMatrix<std::float32_t>>;
+    || std::is_same_v<T, backend::CudaMatrix<std::float16_t>> || std::is_same_v<T, backend::CudaMatrix<std::float32_t>>;
 
 template <MatrixBackend M>
 class Matrix {
@@ -233,11 +230,6 @@ private:
 export template <MatrixElementType T>
 using CpuMatrix = Matrix<backend::CpuMatrix<T>>;
 
-namespace experiment {
-    export template <MatrixElementType T>
-    using WebGpuMatrix = Matrix<backend::WebGpuMatrix<T>>;
-}
-
 export template <MatrixElementType T>
 using CudaMatrix = Matrix<backend::CudaMatrix<T>>;
 
@@ -259,6 +251,5 @@ using CudaMatrix = Matrix<backend::CudaMatrix<T>>;
 
 Operators(CpuMatrix);
 Operators(CudaMatrix);
-Operators(experiment::WebGpuMatrix);
 
 }
