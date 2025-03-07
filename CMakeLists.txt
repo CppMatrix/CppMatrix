@@ -11,29 +11,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Download dependencies
-set(WEBGPU_PATH ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/webgpu)
-
-if (NOT EXISTS ${WEBGPU_PATH})
-    file(MAKE_DIRECTORY ${WEBGPU_PATH})
-endif()
-
-if ((NOT EXISTS ${WEBGPU_PATH}/libwebgpu_dawn.so) OR (NOT EXISTS ${WEBGPU_PATH}/webgpu.h))
-    MESSAGE("Download libwebgpu_dawn.so and webgpu.h")
-    file(DOWNLOAD
-        https://github.com/CppMatrix/libwebgpu_dawn/releases/download/2025.02.28/libwebgpu_dawn.so
-        ${WEBGPU_PATH}/libwebgpu_dawn.so
-        SHOW_PROGRESS)
-    file(DOWNLOAD
-        https://github.com/CppMatrix/libwebgpu_dawn/releases/download/2025.02.28/webgpu.h
-        ${WEBGPU_PATH}/webgpu.h
-        SHOW_PROGRESS)
-endif()
-
-include_directories(
-    ${WEBGPU_PATH}/..
-)
-
 find_package(CUDAToolkit REQUIRED)
 include_directories(${CUDAToolkit_INCLUDE_DIRS})
 

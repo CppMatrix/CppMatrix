@@ -4,7 +4,6 @@ Supported backed:
 
 * Cpu
 * Cuda
-* WebGpu (experiment)
 
 Supported type:
 
@@ -50,10 +49,6 @@ then run it like this:
 or using cuda backend:
 
     $ ./build/example/mnist/mnist mnist_train_100.csv mnist_test_10.csv --use-cuda
-
-or using webgpu backend:
-
-    $ ./build/example/mnist/mnist mnist_train_100.csv mnist_test_10.csv --use-webgpu
 
 output:
 
