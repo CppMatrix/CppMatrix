@@ -36,6 +36,16 @@ public:
     {
     }
 
+    CpuMatrix(CpuMatrix&& other)
+        : m_row { other.m_row }
+        , m_column { other.m_column }
+        , m_data { std::move(other.m_data) }
+    {
+        other.m_row = 0;
+        other.m_column = 0;
+        assert(other.m_data.empty());
+    }
+
     size_t Row() const
     {
         return m_row;
@@ -107,11 +117,20 @@ public:
         return *this;
     }
 
-    CpuMatrix operator+(T v) const
+    CpuMatrix operator+(ElementType v) const
     {
         CpuMatrix res { m_row, m_column };
         for (auto i = 0u; i < m_row * m_column; ++i) {
             res.m_data[i] = m_data[i] + v;
+        }
+        return res;
+    }
+
+    CpuMatrix operator/(ElementType v) const
+    {
+        CpuMatrix res { m_row, m_column };
+        for (auto i = 0u; i < m_row * m_column; ++i) {
+            res.m_data[i] = m_data[i] / v;
         }
         return res;
     }
@@ -145,6 +164,17 @@ public:
             }
         }
         return res;
+    }
+
+    CpuMatrix& operator=(CpuMatrix&& other)
+    {
+        m_row = other.m_row;
+        m_column = other.m_column;
+        m_data = std::move(other.m_data);
+        other.m_row = 0;
+        other.m_column = 0;
+        assert(other.m_data.empty());
+        return *this;
     }
 
     CpuMatrix Sigmoid() const

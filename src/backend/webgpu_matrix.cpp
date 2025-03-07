@@ -49,6 +49,11 @@ public:
         wgpuQueueWriteBuffer(adapter->GetQueue(), m_pBuffer.get(), 0, tmp.data(), sizeof(T) * tmp.size());
     }
 
+    WebGpuMatrix(WebGpuMatrix&& other)
+    {
+        throw std::runtime_error { "Not implemented" };
+    }
+
     size_t Row() const
     {
         return m_row;
@@ -172,7 +177,7 @@ fn main() {{
         return *this;
     }
 
-    WebGpuMatrix operator+(T v) const
+    WebGpuMatrix operator+(ElementType v) const
     {
         auto adapter = GpuInstance::GetInstance().GetAdapter();
         auto vbuffer = adapter->CreateBuffer<T>(1);
@@ -205,6 +210,11 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {{
         };
         webgpu::Run(code, { parameters.begin(), parameters.end() }, N, 256);
         return output;
+    }
+
+    WebGpuMatrix operator/(ElementType v) const
+    {
+        throw std::runtime_error { "Not implemented" };
     }
 
     WebGpuMatrix operator-(const WebGpuMatrix& other) const
@@ -401,6 +411,11 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {{
     }
 
     WebGpuMatrix Sum(bool byRow, bool byColumn) const
+    {
+        throw std::runtime_error { "Not implemented" };
+    }
+
+    WebGpuMatrix& operator=(WebGpuMatrix&& other)
     {
         throw std::runtime_error { "Not implemented" };
     }

@@ -30,6 +30,15 @@ cudaError_t CudaSub(
 cudaError_t CudaSub(
     std::float32_t a, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements);
 
+cudaError_t CudaDiv(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB, std::float16_t* cudaBufferOut,
+    size_t numElements);
+cudaError_t CudaDiv(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut,
+    size_t numElements);
+cudaError_t CudaDiv(
+    const std::float16_t* cudaBufferA, std::float16_t cudaBufferB, std::float16_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaDiv(
+    const std::float32_t* cudaBufferA, std::float32_t cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements);
+
 cudaError_t CudaProduct(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB,
     std::float16_t* cudaBufferOut, size_t numElements);
 cudaError_t CudaProduct(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB,
@@ -211,10 +220,17 @@ public:
         return *this = *this + other;
     }
 
-    CudaMatrix operator+(T v) const
+    CudaMatrix operator+(ElementType v) const
     {
         CudaMatrix res { m_row, m_column };
         Cuda(CudaAdd, m_cudaBuffer.get(), v, res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
+    }
+
+    CudaMatrix operator/(ElementType v) const
+    {
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaDiv, m_cudaBuffer.get(), v, res.m_cudaBuffer.get(), m_row * m_column);
         return res;
     }
 

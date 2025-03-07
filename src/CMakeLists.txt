@@ -1,3 +1,4 @@
+add_subdirectory(neural_network)
 add_subdirectory(webgpu)
 
 add_library(cpp_matrix
