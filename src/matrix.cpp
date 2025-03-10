@@ -1,5 +1,6 @@
 module;
 
+#include <format>
 #include <span>
 #include <stdexcept>
 #include <stdfloat>
@@ -195,6 +196,16 @@ public:
     float operator[](size_t row, size_t column) const
     {
         return m_matrix[row, column];
+    }
+
+    /// @brief Add value each row. The input should be a 1xC matrix.
+    Matrix AddToRow(const Matrix& m) const
+    {
+        if (m_matrix.Column() != m.m_matrix.Column() || m.m_matrix.Row() != 1) {
+            throw std::runtime_error { std::format("Input matrix shoudl be a 1x{} matrix", m_matrix.Column()) };
+        }
+
+        return m_matrix.AddToRow(m.m_matrix);
     }
 
     /// @brief Returns the sum of all elements in the matrix.

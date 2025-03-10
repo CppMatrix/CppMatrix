@@ -289,6 +289,19 @@ public:
         }
     }
 
+    CpuMatrix AddToRow(const CpuMatrix& m) const
+    {
+        assert(m_column == m.m_column && m.m_row == 1);
+
+        CpuMatrix res { m_row, m_column };
+        for (auto r = 0u; r < m_row; ++r) {
+            for (auto c = 0u; c < m_column; ++c) {
+                res.m_data[r * m_column + c] = m_data[r * m_column + c] + m.m_data[c];
+            }
+        }
+        return res;
+    }
+
 private:
     size_t m_row {};
     size_t m_column {};
