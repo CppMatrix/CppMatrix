@@ -318,6 +318,18 @@ public:
         }
     }
 
+    CudaMatrix AddToRow(const CudaMatrix& m) const
+    {
+        assert(m_column == m.m_column && m.m_row == 1);
+
+        auto res = CudaMatrix { m_row, m_column };
+        for (auto r = 0u; r < m_row; ++r) {
+            Cuda(CudaAdd, m_cudaBuffer.get() + r * m_column, m.m_cudaBuffer.get(),
+                res.m_cudaBuffer.get() + r * m_column, m_column);
+        }
+        return res;
+    }
+
 private:
     void MakeSureShapeIsSame(const CudaMatrix& m) const
     {
