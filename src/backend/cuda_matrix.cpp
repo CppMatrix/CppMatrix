@@ -227,19 +227,19 @@ public:
         return res;
     }
 
-    CudaMatrix operator/(ElementType v) const
-    {
-        CudaMatrix res { m_row, m_column };
-        Cuda(CudaDiv, m_cudaBuffer.get(), v, res.m_cudaBuffer.get(), m_row * m_column);
-        return res;
-    }
-
     CudaMatrix operator-(const CudaMatrix& other) const
     {
         MakeSureShapeIsSame(other);
 
         CudaMatrix res { m_row, m_column };
         Cuda(CudaSub, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
+    }
+
+    CudaMatrix operator*(ElementType v) const
+    {
+        CudaMatrix<T> res { m_row, m_column };
+        Cuda(CudaProduct, v, m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
         return res;
     }
 
@@ -252,6 +252,13 @@ public:
         CudaMatrix res { m_row, other.m_column };
         Cuda(CudaDotProduct, m_cudaBuffer.get(), other.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row, m_column,
             other.m_column);
+        return res;
+    }
+
+    CudaMatrix operator/(ElementType v) const
+    {
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaDiv, m_cudaBuffer.get(), v, res.m_cudaBuffer.get(), m_row * m_column);
         return res;
     }
 
@@ -382,9 +389,7 @@ CudaMatrix<T> operator-(T v, const CudaMatrix<T>& m)
 export template <MatrixElementType T>
 CudaMatrix<T> operator*(T v, const CudaMatrix<T>& m)
 {
-    CudaMatrix<T> res { m.m_row, m.m_column };
-    Cuda(CudaProduct, v, m.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m.m_row * m.m_column);
-    return res;
+    return m * v;
 }
 
 }

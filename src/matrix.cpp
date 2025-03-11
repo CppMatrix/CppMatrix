@@ -84,6 +84,11 @@ public:
         m_matrix.Write(std::span<ElementType> { data });
     }
 
+    Matrix(const Matrix& m)
+        : m_matrix { m.m_matrix }
+    {
+    }
+
     Matrix(Matrix&& m)
         : m_matrix { std::move(m.m_matrix) }
     {
@@ -131,6 +136,11 @@ public:
         return *this + (-v);
     }
 
+    Matrix operator*(ElementType v) const
+    {
+        return m_matrix * v;
+    }
+    
     Matrix operator*(const Matrix& other) const
     {
         return m_matrix * other.m_matrix;

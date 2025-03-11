@@ -36,6 +36,13 @@ public:
     {
     }
 
+    CpuMatrix(const CpuMatrix& other)
+        : m_row { other.m_row }
+        , m_column { other.m_column }
+        , m_data { other.m_data }
+    {
+    }
+
     CpuMatrix(CpuMatrix&& other)
         : m_row { other.m_row }
         , m_column { other.m_column }
@@ -126,15 +133,6 @@ public:
         return res;
     }
 
-    CpuMatrix operator/(ElementType v) const
-    {
-        CpuMatrix res { m_row, m_column };
-        for (auto i = 0u; i < m_row * m_column; ++i) {
-            res.m_data[i] = m_data[i] / v;
-        }
-        return res;
-    }
-
     CpuMatrix operator-(const CpuMatrix& other) const
     {
         if (m_row != other.m_row || m_column != other.m_column) {
@@ -151,6 +149,15 @@ public:
         return res;
     }
 
+    CpuMatrix operator*(ElementType v) const
+    {
+        CpuMatrix res { m_row, m_column };
+        for (auto i = 0u; i < m_row * m_column; ++i) {
+            res.m_data[i] = m_data[i] * v;
+        }
+        return res;
+    }
+
     CpuMatrix operator*(const CpuMatrix& other) const
     {
         CpuMatrix res { m_row, other.m_column };
@@ -162,6 +169,15 @@ public:
                 }
                 res.m_data[y * other.m_column + x] = sum;
             }
+        }
+        return res;
+    }
+
+    CpuMatrix operator/(ElementType v) const
+    {
+        CpuMatrix res { m_row, m_column };
+        for (auto i = 0u; i < m_row * m_column; ++i) {
+            res.m_data[i] = m_data[i] / v;
         }
         return res;
     }

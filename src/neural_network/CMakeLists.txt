@@ -5,6 +5,7 @@ target_sources(cpp_matrix.neural_network PUBLIC FILE_SET CXX_MODULES FILES
     backend.cpp
     loss_functions.cpp
     module.cpp
+    tensor.cpp
 )
 target_link_libraries(cpp_matrix.neural_network PUBLIC
     cpp_matrix
