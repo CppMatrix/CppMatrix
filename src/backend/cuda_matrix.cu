@@ -201,6 +201,22 @@ __global__ void matrixTranspose(const T* a, T* out, size_t aRow, size_t aColumn)
     }
 }
 
+__global__ void scalarExp(const half* a, half* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = hexp(a[i]);
+    }
+}
+
+__global__ void scalarExp(const float* a, float* out, size_t numElements)
+{
+    auto i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        out[i] = expf(a[i]);
+    }
+}
+
 __global__ void vectorPow(const float* a, float e, float* out, size_t numElements)
 {
     auto i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -235,6 +251,7 @@ cudaError_t CudaBinaryOp(const TA a, const TB b, TOut out, size_t numElements, c
 }
 
 enum class UnaryOp {
+    Exp,
     Sigmoid,
     Relu,
 };
@@ -245,6 +262,9 @@ cudaError_t CudaUnaryOp(const T* in, T* out, size_t numElements, UnaryOp op)
     size_t threadsPerBlock = 256;
     size_t blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
     switch (op) {
+    case UnaryOp::Exp:
+        scalarExp<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
+        break;
     case UnaryOp::Sigmoid:
         matrixSigmoid<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
         break;
@@ -374,6 +394,9 @@ DefineCudaDotProductFunc(CudaDotProduct, std::float32_t);
     {                                                                                                                  \
         return CudaUnaryOp(CudaUnderlineType(cudaBufferIn), CudaUnderlineType(cudaBufferOut), numElements, Op);        \
     }
+
+DefineCudaUnaryFunc(CudaExp, UnaryOp::Exp, std::float16_t);
+DefineCudaUnaryFunc(CudaExp, UnaryOp::Exp, std::float32_t);
 
 DefineCudaUnaryFunc(CudaSigmoid, UnaryOp::Sigmoid, std::float16_t);
 DefineCudaUnaryFunc(CudaSigmoid, UnaryOp::Sigmoid, std::float32_t);

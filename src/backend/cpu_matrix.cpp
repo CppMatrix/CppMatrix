@@ -251,6 +251,15 @@ public:
         return res;
     }
 
+    CpuMatrix Exp() const
+    {
+        CpuMatrix res { m_row, m_column };
+        for (auto i = 0u; i < m_row * m_column; ++i) {
+            res.m_data[i] = std::exp((float)m_data[i]);
+        }
+        return res;
+    }
+
     CpuMatrix Pow(T e) const
     {
         CpuMatrix res { m_row, m_column };

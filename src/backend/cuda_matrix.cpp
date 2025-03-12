@@ -64,6 +64,9 @@ cudaError_t CudaTranspose(
 cudaError_t CudaRelu(const std::float16_t* cudaBufferIn, std::float16_t* cudaBufferOut, size_t numElements);
 cudaError_t CudaRelu(const std::float32_t* cudaBufferIn, std::float32_t* cudaBufferOut, size_t numElements);
 
+cudaError_t CudaExp(const std::float16_t* cudaBufferA, std::float16_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaExp(const std::float32_t* cudaBufferA, std::float32_t* cudaBufferOut, size_t numElements);
+
 cudaError_t CudaPow(
     const std::float32_t* cudaBufferA, std::float32_t e, std::float32_t* cudaBufferOut, size_t numElements);
 
@@ -299,6 +302,13 @@ public:
     {
         CudaMatrix res { m_row, m_column };
         Cuda(CudaRelu, m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
+        return res;
+    }
+
+    CudaMatrix Exp() const
+    {
+        CudaMatrix res { m_row, m_column };
+        Cuda(CudaExp, m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
         return res;
     }
 
