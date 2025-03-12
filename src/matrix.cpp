@@ -256,6 +256,12 @@ public:
         return m_matrix.Relu();
     }
 
+    /// @brief Caculate exp() element-wise.
+    Matrix Exp() const
+    {
+        return m_matrix.Exp();
+    }
+
     Matrix Pow(ElementType e) const
     {
         return m_matrix.Pow(e);
