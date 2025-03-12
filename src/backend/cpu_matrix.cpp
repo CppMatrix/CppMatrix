@@ -2,6 +2,7 @@ module;
 
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <span>
 #include <stdexcept>
 #include <vector>
@@ -87,6 +88,16 @@ public:
         }
 
         m_data = std::move(data);
+    }
+
+    void Write(size_t row, size_t column, const CpuMatrix& m)
+    {
+        assert(m_row >= row + m.m_row && m_column >= column + m.m_column);
+
+        for (auto r = 0u; r < m.m_row; ++r) {
+            memcpy(m_data.data() + (r + row) * m_column + column, m.m_data.data() + r * m.m_column,
+                sizeof(ElementType) * m.m_column);
+        }
     }
 
     std::vector<T> Read() const

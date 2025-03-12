@@ -1,3 +1,4 @@
+/// @file
 module;
 
 #include <format>
@@ -84,6 +85,63 @@ public:
         m_matrix.Write(std::span<ElementType> { data });
     }
 
+    /** @brief Stack matrixs in sequence horizontally (column wise).
+        @exception std::runtime_error If matrix has different number of rows.
+      
+        This constructor will create a matrix by stack other matrixs in sequence
+        horizontally.
+      
+        For example, there are two matrixs:
+        \code{.cpp}
+        auto a = Matrix {
+            {1.0, 1.1},
+            {2.0, 2.1}
+        };
+      
+        auto b = Matrix {
+            {1.2, 1.3, 1.4},
+            {2.2, 2.3, 2.4}
+        };
+        \endcode
+      
+        Now, you can create the third matrix like this:
+        \code{.cpp}
+        auto c = Matrix { a, b };
+        \endcode
+      
+        The matrix \c c will be:
+        \verbatim
+        c = {
+            {1.0, 1.1, 1.2, 1.3, 1.4},
+            {2.0, 2.1, 2.2, 2.3, 2.4}
+        };
+        \endverbatim
+    **/
+    Matrix(std::initializer_list<Matrix> matrixs)
+    {
+        if (matrixs.size() == 0) {
+            return;
+        }
+
+        size_t row = matrixs.begin()->Row();
+        size_t column {};
+        for (const auto& m : matrixs) {
+            if (row != m.Row()) {
+                throw std::runtime_error { std::format(
+                    "Matrix must have the same number of rows: {} vs {}.", row, m.Row()) };
+            }
+
+            column += m.Column();
+        }
+
+        m_matrix = M { row, column };
+        column = 0;
+        for (const auto& m : matrixs) {
+            m_matrix.Write(0, column, m.m_matrix);
+            column += m.Column();
+        }
+    }
+
     Matrix(const Matrix& m)
         : m_matrix { m.m_matrix }
     {
@@ -140,7 +198,7 @@ public:
     {
         return m_matrix * v;
     }
-    
+
     Matrix operator*(const Matrix& other) const
     {
         return m_matrix * other.m_matrix;
