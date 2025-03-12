@@ -197,6 +197,16 @@ public:
         Cuda(cudaMemcpy, m_cudaBuffer.get(), data.data(), BufferSize(), cudaMemcpyHostToDevice);
     }
 
+    void Write(size_t row, size_t column, const CudaMatrix& m)
+    {
+        assert(m_row >= row + m.m_row && m_column >= column + m.m_column);
+
+        for (auto r = 0u; r < m.m_row; ++r) {
+            Cuda(cudaMemcpy, m_cudaBuffer.get() + (r + row) * m_column + column, m.m_cudaBuffer.get() + r * m.m_column,
+                sizeof(ElementType) * m.m_column, cudaMemcpyHostToDevice);
+        }
+    }
+
     std::vector<ElementType> Read() const
     {
         std::vector<ElementType> res(m_row * m_column);

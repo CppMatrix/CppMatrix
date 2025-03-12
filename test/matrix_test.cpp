@@ -688,3 +688,32 @@ MATRIX_TEST(Sum)
         ASSERT_FLOAT_EQ(sum.Read()[i], expectedSumByColumn[i]);
     }
 }
+
+MATRIX_TEST(HStack)
+{
+    // clang-format off
+    auto a = Matrix {
+        {1.0_mf, 1.1_mf},
+        {2.0_mf, 2.2_mf}
+    };
+
+    auto b = Matrix {
+        {1.0_mf, 1.1_mf, 1.2_mf},
+        {2.0_mf, 2.2_mf, 2.3_mf}
+    };
+    // clang-format on
+
+    auto z = Matrix { a, b };
+    ASSERT_EQ(z.Row(), 2);
+    ASSERT_EQ(z.Column(), 5);
+    ASSERT_FLOAT_EQ((z[0, 0]), 1.0_mf);
+    ASSERT_FLOAT_EQ((z[0, 1]), 1.1_mf);
+    ASSERT_FLOAT_EQ((z[0, 2]), 1.0_mf);
+    ASSERT_FLOAT_EQ((z[0, 3]), 1.1_mf);
+    ASSERT_FLOAT_EQ((z[0, 4]), 1.2_mf);
+    ASSERT_FLOAT_EQ((z[1, 0]), 2.0_mf);
+    ASSERT_FLOAT_EQ((z[1, 1]), 2.2_mf);
+    ASSERT_FLOAT_EQ((z[1, 2]), 2.0_mf);
+    ASSERT_FLOAT_EQ((z[1, 3]), 2.2_mf);
+    ASSERT_FLOAT_EQ((z[1, 4]), 2.3_mf);
+}
