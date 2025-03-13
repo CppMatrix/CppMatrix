@@ -37,13 +37,13 @@ public:
         auto hidden_inputs = m_wih * inputs;
 
         // calculate the signals emerging from hidden layer
-        auto hidden_outputs = hidden_inputs.Sigmoid();
+        auto hidden_outputs = Sigmoid(hidden_inputs);
 
         //  calculate signals into final output layer
         auto final_inputs = m_who * hidden_outputs;
 
         // calculate the signals emerging from final output layer
-        auto final_outputs = final_inputs.Sigmoid();
+        auto final_outputs = Sigmoid(final_inputs);
 
         // output layer error is the (target - actual)
         auto output_errors = targets - final_outputs;
@@ -71,18 +71,23 @@ public:
         auto hidden_inputs = m_wih * inputs;
 
         // calculate the signals emerging from hidden layer
-        auto hidden_outputs = hidden_inputs.Sigmoid();
+        auto hidden_outputs = Sigmoid(hidden_inputs);
 
         // calculate signals into final output layer
         auto final_inputs = m_who * hidden_outputs;
 
         // caculate the signals emerging from final output layer
-        auto final_outputs = final_inputs.Sigmoid();
+        auto final_outputs = Sigmoid(final_inputs);
 
         return final_outputs.Read();
     }
 
 private:
+    Matrix Sigmoid(const Matrix& m)
+    {
+        return (T)1 / ((T)1 + (-m).Exp());
+    }
+
     size_t m_inodes {};
     size_t m_hnodes {};
     size_t m_onodes {};

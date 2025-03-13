@@ -158,22 +158,6 @@ __global__ void matrixDotMul(const T* a, const T* b, T* out, size_t aRow, size_t
     }
 }
 
-__global__ void matrixSigmoid(const half* in, half* out, size_t numElements)
-{
-    auto i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < numElements) {
-        out[i] = (half)1.0 / ((half)1.0 + hexp(-in[i]));
-    }
-}
-
-__global__ void matrixSigmoid(const float* in, float* out, size_t numElements)
-{
-    auto i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < numElements) {
-        out[i] = 1 / (1 + expf(-in[i]));
-    }
-}
-
 __global__ void matrixRelu(const half* in, half* out, size_t numElements)
 {
     auto i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -252,7 +236,6 @@ cudaError_t CudaBinaryOp(const TA a, const TB b, TOut out, size_t numElements, c
 
 enum class UnaryOp {
     Exp,
-    Sigmoid,
     Relu,
 };
 
@@ -264,9 +247,6 @@ cudaError_t CudaUnaryOp(const T* in, T* out, size_t numElements, UnaryOp op)
     switch (op) {
     case UnaryOp::Exp:
         scalarExp<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
-        break;
-    case UnaryOp::Sigmoid:
-        matrixSigmoid<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
         break;
     case UnaryOp::Relu:
         matrixRelu<<<blocksPerGrid, threadsPerBlock>>>(in, out, numElements);
@@ -374,9 +354,11 @@ DefineCudaBinaryFunc(CudaProduct, '*', std::float16_t, const std::float16_t*, st
 DefineCudaBinaryFunc(CudaProduct, '*', std::float32_t, const std::float32_t*, std::float32_t*);
 
 DefineCudaBinaryFunc(CudaDiv, '/', const std::float16_t*, const std::float16_t*, std::float16_t*);
-DefineCudaBinaryFunc(CudaDiv, '/', const std::float16_t*, std::float16_t, std::float16_t*);
 DefineCudaBinaryFunc(CudaDiv, '/', const std::float32_t*, const std::float32_t*, std::float32_t*);
+DefineCudaBinaryFunc(CudaDiv, '/', const std::float16_t*, std::float16_t, std::float16_t*);
 DefineCudaBinaryFunc(CudaDiv, '/', const std::float32_t*, std::float32_t, std::float32_t*);
+DefineCudaBinaryFunc(CudaDiv, '/', std::float16_t, const std::float16_t*, std::float16_t*);
+DefineCudaBinaryFunc(CudaDiv, '/', std::float32_t, const std::float32_t*, std::float32_t*);
 
 #define DefineCudaDotProductFunc(Name, Type)                                                                           \
     cudaError_t Name(const Type* cudaBufferA, const Type* cudaBufferB, Type* cudaBufferOut, size_t aRow,               \
@@ -397,9 +379,6 @@ DefineCudaDotProductFunc(CudaDotProduct, std::float32_t);
 
 DefineCudaUnaryFunc(CudaExp, UnaryOp::Exp, std::float16_t);
 DefineCudaUnaryFunc(CudaExp, UnaryOp::Exp, std::float32_t);
-
-DefineCudaUnaryFunc(CudaSigmoid, UnaryOp::Sigmoid, std::float16_t);
-DefineCudaUnaryFunc(CudaSigmoid, UnaryOp::Sigmoid, std::float32_t);
 
 DefineCudaUnaryFunc(CudaRelu, UnaryOp::Relu, std::float16_t);
 DefineCudaUnaryFunc(CudaRelu, UnaryOp::Relu, std::float32_t);

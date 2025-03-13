@@ -18,7 +18,7 @@ class CpuMatrix {
     friend CpuMatrix<R> operator-(R v, const CpuMatrix<R>& m);
 
     template <MatrixElementType R>
-    friend CpuMatrix<R> operator*(R v, const CpuMatrix<R>& m);
+    friend CpuMatrix<R> operator/(R v, const CpuMatrix<R>& m);
 
 public:
     using ElementType = T;
@@ -204,15 +204,6 @@ public:
         return *this;
     }
 
-    CpuMatrix Sigmoid() const
-    {
-        CpuMatrix res { m_row, m_column };
-        for (auto i = 0u; i < m_row * m_column; ++i) {
-            res.m_data[i] = 1.f / (1.f + std::exp(static_cast<float>(-m_data[i])));
-        }
-        return res;
-    }
-
     CpuMatrix Transpose() const
     {
         CpuMatrix res { m_column, m_row };
@@ -357,13 +348,13 @@ CpuMatrix<T> operator-(T v, const CpuMatrix<T>& m)
 }
 
 export template <MatrixElementType T>
-CpuMatrix<T> operator*(T v, const CpuMatrix<T>& m)
+CpuMatrix<T> operator/(T v, const CpuMatrix<T>& m)
 {
     CpuMatrix<T> res { m.m_row, m.m_column };
     auto* pR = res.m_data.data();
     auto* p1 = m.m_data.data();
     for (auto i = 0u; i < m.m_row * m.m_column; ++i) {
-        *pR++ = v * *p1++;
+        *pR++ = v / *p1++;
     }
     return res;
 }

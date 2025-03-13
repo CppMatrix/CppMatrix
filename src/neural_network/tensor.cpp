@@ -6,6 +6,7 @@ module;
 #include <initializer_list>
 #include <optional>
 #include <span>
+#include <stdexcept>
 #include <stdfloat>
 #include <string>
 #include <unordered_map>
@@ -27,7 +28,7 @@ public:
 
     /// @brief Initialize a tensor with matrix data.
     Tensor(Matrix m)
-        : m_matrix { std::move(m) }
+        : Tensor { "", std::move(m) }
     {
     }
 
@@ -35,12 +36,13 @@ public:
     Tensor(std::string label, Matrix m)
         : m_label { std::move(label) }
         , m_matrix { std::move(m) }
+        , m_grads { { m_label, { m_matrix.Row(), m_matrix.Column(), (ElementType)1 } } }
     {
     }
 
     /// @brief Initialize a tensor with init data.
     Tensor(std::initializer_list<std::initializer_list<ElementType>> initData)
-        : m_matrix { std::move(initData) }
+        : Tensor { "", std::move(initData) }
     {
     }
 
@@ -48,6 +50,7 @@ public:
     Tensor(std::string label, std::initializer_list<std::initializer_list<ElementType>> initData)
         : m_label { std::move(label) }
         , m_matrix { std::move(initData) }
+        , m_grads { { m_label, { m_matrix.Row(), m_matrix.Column(), (ElementType)1 } } }
     {
     }
 
@@ -73,6 +76,18 @@ public:
         return m_matrix.Column();
     }
 
+    Tensor operator-() const
+    {
+        return *this * -1;
+    }
+
+    Tensor operator+(ElementType v) const
+    {
+        auto res = Tensor { m_matrix + v };
+        res.m_grads = m_grads;
+        return res;
+    }
+
     Tensor operator-(const Tensor& other) const
     {
         return m_matrix - other.m_matrix;
@@ -91,20 +106,24 @@ public:
     Tensor Pow(ElementType n) const
     {
         auto res = Tensor { m_matrix.Pow(n) };
-        res.m_grads.emplace(m_label, n * m_matrix.Pow(n - 1));
+        res.m_grads = m_grads;
+        for (auto& g : res.m_grads) {
+            g.second = (n * m_matrix.Pow(n - 1)).ElementProduct(g.second);
+        }
         return res;
     }
 
     Tensor operator+(const Tensor& other) const
     {
         auto res = Tensor { m_matrix + other.m_matrix };
-        res.m_grads = m_grads;
-        for (const auto& it : other.m_grads) {
-            auto sit = res.m_grads.find(it.first);
-            if (sit != res.m_grads.end()) {
-                sit->second = sit->second + it.second;
-            } else {
-                res.m_grads.emplace(it.first, it.second);
+        for (auto& gA : m_grads) {
+            auto itB = other.m_grads.find(gA.first);
+            res.m_grads.emplace(gA.first, itB != other.m_grads.end() ? gA.second + itB->second : gA.second);
+        }
+        for (auto& gB : other.m_grads) {
+            auto itA = m_grads.find(gB.first);
+            if (itA == m_grads.end()) {
+                res.m_grads.emplace(gB.first, gB.second);
             }
         }
         return res;
@@ -113,14 +132,20 @@ public:
     Tensor operator*(ElementType n) const
     {
         auto res = Tensor { m_matrix * n };
-        if (m_grads.empty()) {
-            std::vector<ElementType> d(m_matrix.Row() * m_matrix.Column(), n);
-            res.m_grads.emplace(m_label, Matrix { m_matrix.Row(), m_matrix.Column(), { d.begin(), d.end() } });
-        } else {
-            res.m_grads = m_grads;
-            for (auto& it : res.m_grads) {
-                it.second = n * it.second;
-            }
+        res.m_grads = m_grads;
+        for (auto& g : res.m_grads) {
+            g.second = g.second * n;
+        }
+        return res;
+    }
+
+    Tensor Exp() const
+    {
+        auto r = m_matrix.Exp();
+        auto res = Tensor { m_label, r };
+        res.m_grads = m_grads;
+        for (auto& g : res.m_grads) {
+            g.second = r.ElementProduct(g.second);
         }
         return res;
     }
@@ -134,6 +159,17 @@ public:
         return (*m_data)[row * m_matrix.Column() + column];
     }
 
+    /// @brief Applies the element-wise function: v / x
+    Tensor DivBy(ElementType v) const
+    {
+        auto res = Tensor { v / m_matrix };
+        res.m_grads = m_grads;
+        for (auto& g : res.m_grads) {
+            g.second = (-v / m_matrix.Pow(2)).ElementProduct(g.second);
+        }
+        return res;
+    }
+
     /// @brief Compute gradients.
     Tensor Backward(const std::string& label) const
     {
@@ -142,6 +178,18 @@ public:
             return {};
         } else {
             return it->second;
+        }
+    }
+
+    /// @brief Compute gradients.
+    Tensor Backward() const
+    {
+        if (m_grads.size() > 1) {
+            throw std::runtime_error { "Label must be specified for multiple inputs." };
+        } else if (m_grads.empty()) {
+            return {};
+        } else {
+            return m_grads.begin()->second;
         }
     }
 
@@ -154,26 +202,28 @@ private:
 
 }
 
-export cpp_matrix::neural_network::Tensor<cpp_matrix::CpuMatrix<std::float16_t>> operator*(
-    std::float16_t n, const cpp_matrix::neural_network::Tensor<cpp_matrix::CpuMatrix<std::float16_t>>& tensor)
-{
-    return tensor * n;
-}
+#define OpOperators(M, op, Func)                                                                                       \
+    export M operator op(typename M::ElementType v, const M& m)                                                        \
+    {                                                                                                                  \
+        return m.Func(v);                                                                                              \
+    }
 
-export cpp_matrix::neural_network::Tensor<cpp_matrix::CpuMatrix<std::float32_t>> operator*(
-    std::float32_t n, const cpp_matrix::neural_network::Tensor<cpp_matrix::CpuMatrix<std::float32_t>>& tensor)
-{
-    return tensor * n;
-}
+#define ReverseOpOperators(M, op)                                                                                      \
+    export M operator op(typename M::ElementType v, const M& m)                                                        \
+    {                                                                                                                  \
+        return m.operator op(v);                                                                                       \
+    }
 
-export cpp_matrix::neural_network::Tensor<cpp_matrix::CudaMatrix<std::float16_t>> operator*(
-    std::float16_t n, const cpp_matrix::neural_network::Tensor<cpp_matrix::CudaMatrix<std::float16_t>>& tensor)
-{
-    return tensor * n;
-}
+// clang-format off
+#define Operators(M)            \
+    ReverseOpOperators(M, +)    \
+    ReverseOpOperators(M, *)    \
+    OpOperators(M, /, DivBy)
+//    OpOperators(M, -)            \
 
-export cpp_matrix::neural_network::Tensor<cpp_matrix::CudaMatrix<std::float32_t>> operator*(
-    std::float32_t n, const cpp_matrix::neural_network::Tensor<cpp_matrix::CudaMatrix<std::float32_t>>& tensor)
-{
-    return tensor * n;
-}
+// clang-format on
+
+Operators(cpp_matrix::neural_network::Tensor<cpp_matrix::CpuMatrix<std::float16_t>>);
+Operators(cpp_matrix::neural_network::Tensor<cpp_matrix::CpuMatrix<std::float32_t>>);
+Operators(cpp_matrix::neural_network::Tensor<cpp_matrix::CudaMatrix<std::float16_t>>);
+Operators(cpp_matrix::neural_network::Tensor<cpp_matrix::CudaMatrix<std::float32_t>>);

@@ -25,8 +25,10 @@ class Matrix {
 public:
     using ElementType = M::ElementType;
 
+    friend Matrix operator+(ElementType v, const Matrix& m);
     friend Matrix operator-(ElementType v, const Matrix& m);
     friend Matrix operator*(ElementType v, const Matrix& m);
+    friend Matrix operator/(ElementType v, const Matrix& m);
 
     /// @brief Create a matrix with random value (value will be between 0 and 1).
     static Matrix Random(size_t row, size_t column)
@@ -53,6 +55,14 @@ public:
     Matrix(size_t row, size_t column)
         : m_matrix { row, column }
     {
+    }
+
+    /// @brief Create a \c row x \c column matrix. All elements are \c v.
+    Matrix(size_t row, size_t column, ElementType v)
+        : m_matrix { row, column }
+    {
+        std::vector<ElementType> data(row * column, v);
+        m_matrix.Write(std::span<ElementType> { data });
     }
 
     Matrix(size_t row, size_t column, std::span<ElementType> initData)
@@ -87,28 +97,28 @@ public:
 
     /** @brief Stack matrixs in sequence horizontally (column wise).
         @exception std::runtime_error If matrix has different number of rows.
-      
+
         This constructor will create a matrix by stack other matrixs in sequence
         horizontally.
-      
+
         For example, there are two matrixs:
         \code{.cpp}
         auto a = Matrix {
             {1.0, 1.1},
             {2.0, 2.1}
         };
-      
+
         auto b = Matrix {
             {1.2, 1.3, 1.4},
             {2.2, 2.3, 2.4}
         };
         \endcode
-      
+
         Now, you can create the third matrix like this:
         \code{.cpp}
         auto c = Matrix { a, b };
         \endcode
-      
+
         The matrix \c c will be:
         \verbatim
         c = {
@@ -161,6 +171,11 @@ public:
     std::vector<ElementType> Read() const
     {
         return m_matrix.Read();
+    }
+
+    Matrix operator-() const
+    {
+        return m_matrix * -1;
     }
 
     Matrix operator+(const Matrix& other) const
@@ -241,11 +256,6 @@ public:
         return m_matrix.Transpose();
     }
 
-    Matrix Sigmoid() const
-    {
-        return m_matrix.Sigmoid();
-    }
-
     Matrix ElementProduct(const Matrix& other) const
     {
         return m_matrix.ElementProduct(other.m_matrix);
@@ -324,12 +334,20 @@ using CudaMatrix = Matrix<backend::CudaMatrix<T>>;
         return operator op(v, m.m_matrix);                                                                             \
     }
 
-// clang-format off
-#define OperatorsElementType(M, T) \
-    OpOperators(M<T>, -) \
-    OpOperators(M<T>, *)
+#define ReverseOpOperators(M, op)                                                                                      \
+    M operator op(typename M::ElementType v, const M& m)                                                               \
+    {                                                                                                                  \
+        return m.operator op(v);                                                                                       \
+    }
 
-#define Operators(M) \
+// clang-format off
+#define OperatorsElementType(M, T)  \
+    ReverseOpOperators(M<T>, +)     \
+    OpOperators(M<T>, -)            \
+    ReverseOpOperators(M<T>, *)     \
+    OpOperators(M<T>, /)            \
+
+#define Operators(M)                        \
     OperatorsElementType(M, std::float16_t) \
     OperatorsElementType(M, std::float32_t)
 // clang-format on

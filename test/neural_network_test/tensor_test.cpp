@@ -1,33 +1,4 @@
-#ifndef MATRIX_TEST_NAME
-#error MATRIX_TEST_NAME must be defined.
-#endif
-
-#include <gtest/gtest.h>
-
-#define XSTR(x) STR(x)
-#define STR(x) #x
-#define CONN2(X, Y) X##Y
-#define CONN(X, Y) CONN2(X, Y)
-#define TENSOR_TEST_NAME CONN(MATRIX_TEST_NAME, _NeuralNetwork_TensorTest)
-
-class TENSOR_TEST_NAME : public testing::Test {
-public:
-    void SetUp() override
-    {
-        if (!Matrix::IsAvaliable()) {
-            GTEST_SKIP() << XSTR(MATRIX_TEST_NAME) << " is not avaliable, skip.";
-        }
-    }
-};
-
-#define TENSOR_TEST(X) TEST_F(TENSOR_TEST_NAME, X)
-
-import cpp_matrix.neural_network;
-
-using namespace cpp_matrix;
-using Tensor = cpp_matrix::neural_network::Tensor<Matrix>;
-
-TENSOR_TEST(AutoGrad)
+NEURAL_NETWORK_TEST(Tensor, AutoGrad)
 {
     auto x = Tensor { "x",
         {

@@ -38,6 +38,10 @@ cudaError_t CudaDiv(
     const std::float16_t* cudaBufferA, std::float16_t cudaBufferB, std::float16_t* cudaBufferOut, size_t numElements);
 cudaError_t CudaDiv(
     const std::float32_t* cudaBufferA, std::float32_t cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaDiv(
+    std::float16_t cudaBufferA, const std::float16_t* cudaBufferB, std::float16_t* cudaBufferOut, size_t numElements);
+cudaError_t CudaDiv(
+    std::float32_t cudaBufferA, const std::float32_t* cudaBufferB, std::float32_t* cudaBufferOut, size_t numElements);
 
 cudaError_t CudaProduct(const std::float16_t* cudaBufferA, const std::float16_t* cudaBufferB,
     std::float16_t* cudaBufferOut, size_t numElements);
@@ -52,9 +56,6 @@ cudaError_t CudaDotProduct(const std::float16_t* cudaBufferA, const std::float16
     std::float16_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
 cudaError_t CudaDotProduct(const std::float32_t* cudaBufferA, const std::float32_t* cudaBufferB,
     std::float32_t* cudaBufferOut, size_t aRow, size_t aColumn, size_t bColumn);
-
-cudaError_t CudaSigmoid(const std::float16_t* cudaBufferIn, std::float16_t* cudaBufferOut, size_t numElements);
-cudaError_t CudaSigmoid(const std::float32_t* cudaBufferIn, std::float32_t* cudaBufferOut, size_t numElements);
 
 cudaError_t CudaTranspose(
     const std::float16_t* cudaBufferIn, std::float16_t* cudaBufferOut, size_t inRow, size_t inColumn);
@@ -106,7 +107,7 @@ class CudaMatrix {
     friend CudaMatrix<R> operator-(R v, const CudaMatrix<R>& m);
 
     template <MatrixElementType R>
-    friend CudaMatrix<R> operator*(R v, const CudaMatrix<R>& m);
+    friend CudaMatrix<R> operator/(R v, const CudaMatrix<R>& m);
 
 public:
     using ElementType = T;
@@ -275,13 +276,6 @@ public:
         return res;
     }
 
-    CudaMatrix Sigmoid() const
-    {
-        CudaMatrix res { m_row, m_column };
-        Cuda(CudaSigmoid, m_cudaBuffer.get(), res.m_cudaBuffer.get(), m_row * m_column);
-        return res;
-    }
-
     CudaMatrix Transpose() const
     {
         CudaMatrix res { m_column, m_row };
@@ -407,9 +401,11 @@ CudaMatrix<T> operator-(T v, const CudaMatrix<T>& m)
 }
 
 export template <MatrixElementType T>
-CudaMatrix<T> operator*(T v, const CudaMatrix<T>& m)
+CudaMatrix<T> operator/(T v, const CudaMatrix<T>& m)
 {
-    return m * v;
+    CudaMatrix<T> res { m.m_row, m.m_column };
+    Cuda(CudaDiv, v, m.m_cudaBuffer.get(), res.m_cudaBuffer.get(), m.m_row * m.m_column);
+    return res;
 }
 
 }
