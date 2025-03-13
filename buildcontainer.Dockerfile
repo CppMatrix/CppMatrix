@@ -13,5 +13,6 @@ RUN apt install -y \
     cmake \
     clang \
     clang-tools \
+    doxygen \
     libgtest-dev \
     ninja-build
