@@ -1,33 +1,4 @@
-#ifndef MATRIX_TEST_NAME
-#error MATRIX_TEST_NAME must be defined.
-#endif
-
-#include <gtest/gtest.h>
-
-#define XSTR(x) STR(x)
-#define STR(x) #x
-#define CONN2(X, Y) X##Y
-#define CONN(X, Y) CONN2(X, Y)
-#define NEURAL_NETWORK_TEST_NAME CONN(MATRIX_TEST_NAME, _NeuralNetwork_LossFunctionTest)
-
-class NEURAL_NETWORK_TEST_NAME : public testing::Test {
-public:
-    void SetUp() override
-    {
-        if (!Matrix::IsAvaliable()) {
-            GTEST_SKIP() << XSTR(MATRIX_TEST_NAME) << " is not avaliable, skip.";
-        }
-    }
-};
-
-#define NEURAL_NETWORK_TEST(X) TEST_F(NEURAL_NETWORK_TEST_NAME, X)
-
-import cpp_matrix.neural_network;
-
-using namespace cpp_matrix;
-using namespace cpp_matrix::neural_network;
-
-NEURAL_NETWORK_TEST(MeanSquaredErrorLoss)
+NEURAL_NETWORK_TEST(LossFunction, MeanSquaredErrorLoss)
 {
     Matrix a {
         { 1.0_mf, 1.1_mf, 1.2_mf },

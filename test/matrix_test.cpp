@@ -534,30 +534,6 @@ MATRIX_TEST(MatrixScalarMul)
     test(5000, 5000);
 }
 
-MATRIX_TEST(MatrixSigmoid)
-{
-    Matrix x { 3, 1 };
-
-    // clang-format off
-    std::vector<Matrix::ElementType> initData {
-        1.16_mf,
-        0.42_mf,
-        0.62_mf,
-    };
-    // clang-format on
-
-    x.Write(std::span<Matrix::ElementType> { initData });
-
-    auto z = x.Sigmoid();
-    ASSERT_EQ(z.Row(), 3);
-    ASSERT_EQ(z.Column(), 1);
-
-    auto res = z.Read();
-    ASSERT_FLOAT_EQ(res[0], 0.76133269_mf);
-    ASSERT_FLOAT_EQ(res[1], 0.60348326_mf);
-    ASSERT_FLOAT_EQ(res[2], 0.65021855_mf);
-}
-
 MATRIX_TEST(MatrixTranspose)
 {
     auto test = [](size_t M, size_t N) {
