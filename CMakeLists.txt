@@ -30,6 +30,14 @@ add_subdirectory(test)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+        doxygen-awesome-css
+        URL https://github.com/jothepro/doxygen-awesome-css/archive/refs/heads/main.zip
+    )
+    FetchContent_MakeAvailable(doxygen-awesome-css)
+    FetchContent_GetProperties(doxygen-awesome-css SOURCE_DIR AWESOME_CSS_DIR)
+
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
     add_custom_target(doc
         COMMAND ${DOXYGEN_EXECUTABLE}
