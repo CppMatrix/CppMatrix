@@ -90,7 +90,19 @@ public:
 
     Tensor operator-(const Tensor& other) const
     {
-        return m_matrix - other.m_matrix;
+        auto res = Tensor { m_matrix - other.m_matrix };
+        res.m_grads.clear();
+        for (auto& gA : m_grads) {
+            auto itB = other.m_grads.find(gA.first);
+            res.m_grads.emplace(gA.first, itB != other.m_grads.end() ? gA.second - itB->second : gA.second);
+        }
+        for (auto& gB : other.m_grads) {
+            auto itA = m_grads.find(gB.first);
+            if (itA == m_grads.end()) {
+                res.m_grads.emplace(gB.first, -gB.second);
+            }
+        }
+        return res;
     }
 
     Tensor operator*(const Tensor& other) const
@@ -116,6 +128,7 @@ public:
     Tensor operator+(const Tensor& other) const
     {
         auto res = Tensor { m_matrix + other.m_matrix };
+        res.m_grads.clear();
         for (auto& gA : m_grads) {
             auto itB = other.m_grads.find(gA.first);
             res.m_grads.emplace(gA.first, itB != other.m_grads.end() ? gA.second + itB->second : gA.second);
@@ -135,6 +148,16 @@ public:
         res.m_grads = m_grads;
         for (auto& g : res.m_grads) {
             g.second = g.second * n;
+        }
+        return res;
+    }
+
+    Tensor operator/(ElementType n) const
+    {
+        auto res = Tensor { m_matrix / n };
+        res.m_grads = m_grads;
+        for (auto& g : res.m_grads) {
+            g.second = g.second / n;
         }
         return res;
     }
@@ -167,6 +190,15 @@ public:
         for (auto& g : res.m_grads) {
             g.second = (-v / m_matrix.Pow(2)).ElementProduct(g.second);
         }
+        return res;
+    }
+
+    /// @brief Returns the sum of all elements in the tensor.
+    /// @return Should be a \a 1x1 Tensor.
+    Tensor Sum() const
+    {
+        auto res = Tensor { m_matrix.Sum() };
+        res.m_grads = m_grads;
         return res;
     }
 
