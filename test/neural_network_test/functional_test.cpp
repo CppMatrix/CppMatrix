@@ -4,25 +4,23 @@ using namespace cpp_matrix::neural_network::functional;
 
 NEURAL_NETWORK_TEST(Functional, MseLoss)
 {
-    Tensor a { "a",
-        {
-            { 1.0_mf, 1.1_mf, 1.2_mf },
-            { 2.0_mf, 2.2_mf, 2.3_mf },
-        } };
+    Tensor a { {
+        { 1.0_mf, 1.1_mf, 1.2_mf },
+        { 2.0_mf, 2.2_mf, 2.3_mf },
+    } };
 
-    Tensor b { "b",
-        {
-            { 1.01_mf, 1.11_mf, 1.12_mf },
-            { 2.10_mf, 2.11_mf, 2.21_mf },
-        } };
+    Tensor b { {
+        { 1.01_mf, 1.11_mf, 1.12_mf },
+        { 2.10_mf, 2.11_mf, 2.21_mf },
+    } };
 
     auto result1 = MeanSquaredErrorLoss(a, b);
     auto result2 = MseLoss(a, b);
 
-    auto dx1a = result1.Backward("a");
-    auto dx1b = result1.Backward("b");
-    auto dx2a = result2.Backward("a");
-    auto dx2b = result2.Backward("b");
+    auto dx1a = result1.Derivative(a);
+    auto dx1b = result1.Derivative(b);
+    auto dx2a = result2.Derivative(a);
+    auto dx2b = result2.Derivative(b);
 
     auto expectedDxa = [](typename Matrix::ElementType x, typename Matrix::ElementType y) {
         return (typename Matrix::ElementType)(2 * (x - y) / 6);
@@ -89,7 +87,7 @@ NEURAL_NETWORK_TEST(Functional, Sigmoid)
         return f / (Matrix::ElementType)pow(1.0_mf + f, 2.0_mf);
     };
 
-    auto dx = z.Backward();
+    auto dx = z.Derivative(x);
     ASSERT_EQ(dx.Row(), 3);
     ASSERT_EQ(dx.Column(), 1);
     ASSERT_FLOAT_EQ((dx[0, 0]), expectedDx(1.16_mf));
