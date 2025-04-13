@@ -5,7 +5,7 @@ add_executable(cpp_matrix_test
     cuda_matrix_float32_test.cpp
 )
 target_link_libraries(cpp_matrix_test
-    cpp_matrix.neural_network
+    cpp_matrix.nn
     GTest::gtest_main
 )
 gtest_discover_tests(cpp_matrix_test)

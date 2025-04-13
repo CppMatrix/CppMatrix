@@ -1,6 +1,6 @@
 #include "../neural_network_test_common.h"
 
-using Linear = cpp_matrix::neural_network::Linear<Matrix>;
+using Linear = cpp_matrix::nn::Linear<Matrix>;
 
 NEURAL_NETWORK_TEST(Module, LinearSize)
 {

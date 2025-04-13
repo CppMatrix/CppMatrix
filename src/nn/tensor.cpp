@@ -15,10 +15,10 @@ module;
 
 import cpp_matrix;
 
-export module cpp_matrix.neural_network:tensor;
+export module cpp_matrix.nn:tensor;
 export import :backend;
 
-namespace cpp_matrix::neural_network {
+namespace cpp_matrix::nn {
 
 static std::atomic_uint32_t s_tensor_id_seed {};
 
@@ -298,7 +298,7 @@ private:
 
 // clang-format on
 
-Operators(cpp_matrix::neural_network::Tensor<cpp_matrix::CpuMatrix<std::float16_t>>);
-Operators(cpp_matrix::neural_network::Tensor<cpp_matrix::CpuMatrix<std::float32_t>>);
-Operators(cpp_matrix::neural_network::Tensor<cpp_matrix::CudaMatrix<std::float16_t>>);
-Operators(cpp_matrix::neural_network::Tensor<cpp_matrix::CudaMatrix<std::float32_t>>);
+Operators(cpp_matrix::nn::Tensor<cpp_matrix::CpuMatrix<std::float16_t>>);
+Operators(cpp_matrix::nn::Tensor<cpp_matrix::CpuMatrix<std::float32_t>>);
+Operators(cpp_matrix::nn::Tensor<cpp_matrix::CudaMatrix<std::float16_t>>);
+Operators(cpp_matrix::nn::Tensor<cpp_matrix::CudaMatrix<std::float32_t>>);

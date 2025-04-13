@@ -3,10 +3,10 @@ module;
 
 #include <memory>
 
-export module cpp_matrix.neural_network:modules_linear;
+export module cpp_matrix.nn:modules_linear;
 import :modules_module;
 
-namespace cpp_matrix::neural_network {
+namespace cpp_matrix::nn {
 
 export template <Backend Matrix>
 class Linear : public Module<Matrix> {

@@ -7,7 +7,7 @@
 #include <stdfloat>
 #include <vector>
 
-import neural_network;
+import nn;
 import cpp_matrix;
 
 using namespace cpp_matrix;

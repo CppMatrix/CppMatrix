@@ -1,4 +1,4 @@
-add_subdirectory(neural_network)
+add_subdirectory(nn)
 
 add_library(cpp_matrix
     backend/cuda_matrix.cu
