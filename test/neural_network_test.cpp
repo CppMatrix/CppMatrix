@@ -1,4 +1,4 @@
-import cpp_matrix.neural_network;
+import cpp_matrix.nn;
 
 namespace {
 #include "neural_network_test/modules_test/linear_test.cpp"

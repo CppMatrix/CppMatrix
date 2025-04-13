@@ -1,6 +1,6 @@
 #include "neural_network_test_common.h"
 
-using namespace cpp_matrix::neural_network::functional;
+using namespace cpp_matrix::nn::functional;
 
 NEURAL_NETWORK_TEST(Functional, MseLoss)
 {
@@ -14,8 +14,8 @@ NEURAL_NETWORK_TEST(Functional, MseLoss)
         { 2.10_mf, 2.11_mf, 2.21_mf },
     } };
 
-    auto result1 = MeanSquaredErrorLoss(a, b);
-    auto result2 = MseLoss(a, b);
+    auto result1 = mse_loss(a, b);
+    auto result2 = mse_loss(a, b);
 
     auto dx1a = result1.Derivative(a);
     auto dx1b = result1.Derivative(b);
@@ -72,7 +72,7 @@ NEURAL_NETWORK_TEST(Functional, Sigmoid)
     };
     // clang-format on
 
-    auto z = Sigmoid(x);
+    auto z = sigmoid(x);
     ASSERT_EQ(z.Row(), 3);
     ASSERT_EQ(z.Column(), 1);
 

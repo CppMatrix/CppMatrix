@@ -2,10 +2,10 @@
 module;
 #include <memory>
 
-export module cpp_matrix.neural_network:modules_module;
+export module cpp_matrix.nn:modules_module;
 export import :backend;
 
-namespace cpp_matrix::neural_network {
+namespace cpp_matrix::nn {
 
 export template <Backend Matrix>
 class IModule {

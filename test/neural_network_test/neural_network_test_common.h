@@ -26,6 +26,6 @@ public:
 #define NEURAL_NETWORK_TEST(X, Y) TEST_F(NEURAL_NETWORK_TEST_NAME, CONN3(X, _, Y))
 
 using namespace cpp_matrix;
-using namespace cpp_matrix::neural_network;
+using namespace cpp_matrix::nn;
 
-using Tensor = cpp_matrix::neural_network::Tensor<Matrix>;
+using Tensor = cpp_matrix::nn::Tensor<Matrix>;

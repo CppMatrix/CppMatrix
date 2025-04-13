@@ -8,7 +8,7 @@ module;
 
 import cpp_matrix;
 
-export module neural_network;
+export module nn;
 
 using namespace cpp_matrix;
 

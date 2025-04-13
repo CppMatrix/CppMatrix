@@ -5,9 +5,9 @@ module;
 
 import cpp_matrix;
 
-export module cpp_matrix.neural_network:backend;
+export module cpp_matrix.nn:backend;
 
-namespace cpp_matrix::neural_network {
+namespace cpp_matrix::nn {
 
 export template <typename T>
 concept Backend = std::is_same_v<T, cpp_matrix::CpuMatrix<std::float16_t>>
